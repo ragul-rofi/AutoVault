@@ -1,0 +1,4 @@
+id,name,email,role,password
+1,Ragul,ragul@example.com,admin,admin123
+2,Arjun,arjun@example.com,engineer,pass123
+3,Sneha,sneha@example.com,viewer,viewer123
