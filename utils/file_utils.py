@@ -5,7 +5,7 @@ import psycopg2
 from db.config import DB_NAME, DB_USER, DB_PORT, DB_HOST, DB_PASSWORD
 
 # Set of allowed file extensions (corrected)
-ALLOWED_EXTENSIONS = {'.nc', '.cnc', '.gcode', '.tap'}
+ALLOWED_EXTENSIONS = {'.nc', '.cnc', '.gcode', '.tap','.txt'}
 
 # Allow only specific file types
 def allowed_file(filename):
@@ -19,7 +19,8 @@ def calculate_hash(file_content):
     return sha256.hexdigest()
 
 # Fetch machine ID by name
-def get_machine_id(machine_name):
+def get_machine_id(machine_id):
+    logging.warning(f"Looking up machine_id: {machine_id}") 
     try:
         conn = psycopg2.connect(
             dbname=DB_NAME,
@@ -29,8 +30,9 @@ def get_machine_id(machine_name):
             port=DB_PORT
         )
         cur = conn.cursor()
-        cur.execute("SELECT id FROM machines WHERE machine_name = %s", (machine_name,))
+        cur.execute("SELECT id FROM machines WHERE id = %s", (machine_id,))
         result = cur.fetchone()
+        logging.warning(f"Lookup result: {result}")
         cur.close()
         conn.close()
         return result[0] if result else None
@@ -62,7 +64,7 @@ def get_next_version(file_name, machine_id):
         return 1
 
 # Main function to save file and log into DB
-def save_file_and_log(file, machine_name, uploaded_by):
+def save_file_and_log(file, machine_id, uploaded_by):
     filename = file.filename
 
     # 1. Validate file extension
@@ -73,17 +75,21 @@ def save_file_and_log(file, machine_name, uploaded_by):
     content = file.read()
     file_hash = calculate_hash(content)
 
+    
     # 3. Get machine ID
-    machine_id = get_machine_id(machine_name)
-    if not machine_id:
-        return {"status": "fail", "message": "Invalid machine name"}, 400
+    db_machine_id = get_machine_id(machine_id)
+    if db_machine_id is None:
+        return {"status": "fail", "message": "Invalid machine id"}, 400
+    machine_id = db_machine_id
+
+
 
     # 4. Get next version
     version_no = get_next_version(filename, machine_id)
     versioned_name = f"{os.path.splitext(filename)[0]}_v{version_no}{os.path.splitext(filename)[1]}"
     
     # 5. Save file to disk
-    folder_path = os.path.join("uploads", machine_name)
+    folder_path = os.path.join("uploads", str(machine_id))
     os.makedirs(folder_path, exist_ok=True)
     save_path = os.path.join(folder_path, versioned_name)
 
