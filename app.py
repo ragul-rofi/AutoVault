@@ -3,6 +3,27 @@ from utils.auth import authenticate_user
 from utils.file_utils import save_file_and_log 
 from utils.file_utils import get_files_by_machine
 from utils.file_utils import rollback_file_version
+from functools import wraps
+from utils.auth import get_user_role
+
+
+def require_role(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            data = request.get_json()
+            user_id = data.get('uploaded_by') or data.get('user_id')  # flexible field name
+
+            if not user_id:
+                return jsonify({"status": "fail", "message": "Missing user ID"}), 400
+
+            role = get_user_role(user_id)
+            if role not in allowed_roles:
+                return jsonify({"status": "fail", "message": "Access denied"}), 403
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
 app = Flask(__name__)
 
@@ -67,9 +88,10 @@ def list_files(machine_id):
             "status" : "fail",
             "message" : "Invalid machine id"
         }), 400
-
+    
 
 @app.route('/rollback', methods=['POST'])
+@require_role('admin')
 def rollback_file():
     data = request.get_json()
 
@@ -96,6 +118,8 @@ def rollback_file():
     
     result, status = rollback_file_version(machine_id, file_name, target_version, uploaded_by)
     return jsonify(result),status
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
