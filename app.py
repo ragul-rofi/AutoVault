@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from utils.auth import authenticate_user
 from utils.file_utils import save_file_and_log 
+from utils.file_utils import get_files_by_machine
+from utils.file_utils import rollback_file_version
 
 app = Flask(__name__)
 
@@ -52,6 +54,48 @@ def upload_file():
     result, status = save_file_and_log(file, machine_id, uploaded_by)
     return jsonify(result), status
 
+@app.route('/files/<int:machine_id>', methods=['GET'])
+def list_files(machine_id):
+    files = get_files_by_machine(machine_id)
+    if files is not None:
+        return jsonify({
+            "status" : "success",
+            "files": files
+        }), 200
+    else:
+        return jsonify({
+            "status" : "fail",
+            "message" : "Invalid machine id"
+        }), 400
+
+
+@app.route('/rollback', methods=['POST'])
+def rollback_file():
+    data = request.get_json()
+
+    machine_id = data.get('machine_id')
+    file_name = data.get('file_name')
+    target_version = data.get('target_version')
+    uploaded_by = data.get('uploaded_by')
+
+    try:
+        machine_id = int(machine_id)
+        target_version = int(target_version)
+        uploaded_by = int(uploaded_by)
+    except (ValueError, TypeError):
+        return jsonify({
+            "status" : "fail",
+            "message" : "Invalid input types"
+        }), 400
+    
+    if not all([machine_id,file_name,target_version, uploaded_by]):
+        return jsonify({
+            "status" : "fail",
+            "message" : "Missing fields"
+        }), 400
+    
+    result, status = rollback_file_version(machine_id, file_name, target_version, uploaded_by)
+    return jsonify(result),status
 
 if __name__ == '__main__':
     app.run(debug=True)

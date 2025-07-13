@@ -130,3 +130,113 @@ def save_file_and_log(file, machine_id, uploaded_by):
     except Exception as e:
         logging.error("Database Insert Error: %s", e)
         return {"status": "fail", "message": "Internal server error"}, 500
+
+def get_files_by_machine(machine_id):
+    try:
+        logging.warning(f"Fetching files for machine_id: {machine_id}")
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT 
+        )
+
+        cur = conn.cursor()
+        cur.execute("""
+            Select file_name, version_no, uploaded_by, file_hash, storage_path, upload_time
+            from file_versions
+            where machine_id = %s
+            order by file_name, version_no asc
+        """, (machine_id,))
+
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        logging.warning(f"Fetched rows: {rows}")
+
+        if not rows:
+            return None
+
+        files = []
+        for row in rows:
+            files.append({
+                "file_name": row[0],
+                "version_no": row[1],
+                "uploaded_by": row[2],
+                "file_hash": row[3],
+                "storage_path": row[4],
+                "created_at": str(row[5])  # converting datetime to string
+            })
+
+        return files
+    
+    except Exception as e:
+        logging.error("Database Error (get_files_by_machine): %s",e)
+        return None
+
+
+def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_by):
+    try:
+        logging.warning(f"Rolling back {file_name} on machine {machine_id} to v{rollback_to_version}")
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT 
+        )
+        cur = conn.cursor()
+
+        #getting older version details
+        cur.execute("""
+                select file_hash, storage_path from file_versions
+                where machine_id = %s and file_name = %s and version_no = %s
+        """,(machine_id, file_name, rollback_to_version))
+
+        old= cur.fetchone()
+
+        if not old:
+            return {"status" : "fail", "message" : "Version not found"}, 404
+        
+        file_hash, old_path = old
+
+        # Reading old file path
+        with open(old_path, 'rb') as f:
+            content = f.read()
+
+        # Getting next version number
+
+        new_version = get_next_version(file_name, machine_id)
+        versioned_name = f"{os.path.splitext(file_name)[0]}_v{new_version}{os.path.splitext(file_name)[1]}"
+        folder_path = os.path.join("uploads",str(machine_id))
+        save_path = os.path.join(folder_path, versioned_name)
+
+        #saving the copied content
+
+        with open(save_path, 'wb') as f:
+            f.write(content)
+
+        #Inserting new DB record
+
+        cur.execute("""
+            insert into file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path) 
+            values(%s, %s, %s, %s, %s, %s)
+        """, (file_name, machine_id, uploaded_by, new_version, file_hash, save_path))
+
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Rolled back to v{rollback_to_version} → new version v{new_version}",
+            "version_no": new_version,
+            "storage_path": save_path
+        }, 200
+    
+    except Exception as e:
+        logging.error("Rollback Error: {e}")
+        return {"status" : "fail", "message" : "Internal server error"}, 500
