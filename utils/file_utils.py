@@ -1,8 +1,5 @@
-import os
-import hashlib
-import logging
-import psycopg2
-from db.config import DB_NAME, DB_USER, DB_PORT, DB_HOST, DB_PASSWORD
+import os, difflib, hashlib, logging, psycopg2
+from db.config import DB_NAME, DB_USER, DB_PORT, DB_HOST, DB_PASSWORD, GOOGLE_DRIVE_SYNC_PATH
 
 # Set of allowed file extensions (corrected)
 ALLOWED_EXTENSIONS = {'.nc', '.cnc', '.gcode', '.tap','.txt'}
@@ -89,7 +86,7 @@ def save_file_and_log(file, machine_id, uploaded_by):
     versioned_name = f"{os.path.splitext(filename)[0]}_v{version_no}{os.path.splitext(filename)[1]}"
     
     # 5. Save file to disk
-    folder_path = os.path.join("uploads", str(machine_id))
+    folder_path = os.path.join(GOOGLE_DRIVE_SYNC_PATH, str(machine_id))
     os.makedirs(folder_path, exist_ok=True)
     save_path = os.path.join(folder_path, versioned_name)
 
@@ -240,3 +237,52 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
     except Exception as e:
         logging.error("Rollback Error: {e}")
         return {"status" : "fail", "message" : "Internal server error"}, 500
+    
+
+def get_file_path(machine_id, file_name, version_no):
+    try:
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+        cur = conn.cursor()
+        cur.execute("""
+            select storage_path from file_versions
+            where machine_id = %s and file_name = %s and version_no = %s
+        """,(machine_id, file_name, version_no))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        return result[0] if result else None
+    except Exception as e:
+        logging.error("Database Error (get_file_path): ",e)
+        return None
+    
+
+def get_file_diff(machine_id, file_name, version_a, version_b):
+    path_a = get_file_path(machine_id, file_name, version_a)
+    path_b = get_file_path(machine_id, file_name, version_b)
+    
+
+    if not path_a or not path_b:
+        return None, f"Version {version_a} or {version_b} not found in database"
+    
+    try:
+        with open(path_a, 'r') as f1, open(path_b, 'r') as f2:
+            lines_a = f1.read().splitlines()
+            lines_b = f2.read().splitlines()
+
+            diff = list(difflib.unified_diff(
+                lines_a,
+                lines_b,
+                fromfile=f"{file_name}_v{version_a}",
+                tofile=f"{file_name}_v{version_b}",
+                lineterm=""
+            ))
+
+            return diff, None
+    except Exception as e:
+        return None, f"Diff error: {str(e)}"
