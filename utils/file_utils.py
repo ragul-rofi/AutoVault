@@ -79,8 +79,6 @@ def save_file_and_log(file, machine_id, uploaded_by):
         return {"status": "fail", "message": "Invalid machine id"}, 400
     machine_id = db_machine_id
 
-
-
     # 4. Get next version
     version_no = get_next_version(filename, machine_id)
     versioned_name = f"{os.path.splitext(filename)[0]}_v{version_no}{os.path.splitext(filename)[1]}"
@@ -128,6 +126,7 @@ def save_file_and_log(file, machine_id, uploaded_by):
         logging.error("Database Insert Error: %s", e)
         return {"status": "fail", "message": "Internal server error"}, 500
 
+# Get files method
 def get_files_by_machine(machine_id):
     try:
         logging.warning(f"Fetching files for machine_id: {machine_id}")
@@ -173,7 +172,7 @@ def get_files_by_machine(machine_id):
         logging.error("Database Error (get_files_by_machine): %s",e)
         return None
 
-
+# Rollback func
 def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_by):
     try:
         logging.warning(f"Rolling back {file_name} on machine {machine_id} to v{rollback_to_version}")
@@ -238,7 +237,7 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
         logging.error("Rollback Error: {e}")
         return {"status" : "fail", "message" : "Internal server error"}, 500
     
-
+#  Get file path func
 def get_file_path(machine_id, file_name, version_no):
     try:
         conn = psycopg2.connect(
@@ -261,7 +260,7 @@ def get_file_path(machine_id, file_name, version_no):
         logging.error("Database Error (get_file_path): ",e)
         return None
     
-
+# Get file difference func
 def get_file_diff(machine_id, file_name, version_a, version_b):
     path_a = get_file_path(machine_id, file_name, version_a)
     path_b = get_file_path(machine_id, file_name, version_b)
