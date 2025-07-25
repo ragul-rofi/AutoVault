@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoVault | Login</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+        /* General Body Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(#1A597E, #051118);
+            color: #333;
+            overflow: hidden; /* Prevent scrollbar from spinner */
+        }
+
+        
+        /* Login Container Styling */
+        .login-container {
+            background: transparent;
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box; /* Include padding in width */
+            position: relative; /* For spinner positioning */
+        }
+
+        .logo-img {
+            width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        /* Heading Styling */
+        h1 {
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: 600;
+            font-family: 'Poppins';
+            
+        }
+
+        /* Form Group Styling */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        /* Label Styling */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Poppins';
+            font-weight: 400;
+            font-size: 12px;
+            color: #B0B0B0;
+            letter-spacing: 1px;
+        }
+
+        /* Input Field Styling */
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #29edffbf;
+            box-shadow: 0 0 0 3px rgba(41, 237, 255, 0.352);
+            outline: none;
+            font-family: 'Poppins';
+        }
+
+        /* Button Styling */
+        button[type="submit"] {
+            margin-top: 15px;
+            font-family: 'Poppins';
+            background-color: #54D76C;
+            color: #000000;
+            padding: 8px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 70%;
+            box-sizing: border-box;
+           
+        }
+
+        button[type="submit"]:hover {
+            background-color: #4CAF50;
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+       
+
+        /* Message Banner Styling */
+        .message-banner {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0; /* Hidden by default */
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .message-banner.success {
+            background-color: #f8d7da3d;
+            color: #a1ffb1;
+            border: 1px solid #c3e6cb;
+            opacity: 1;
+            visibility: visible;
+            font-family: 'Poppins';
+        }
+
+        .message-banner.error {
+            background-color: #f8d7da3d;
+            color: #ffa1aa;
+            border: 1px solid #f5c6cb;
+            opacity: 0.7;
+            visibility: visible;
+            font-family: 'Poppins';
+        }
+
+        /* Loading Spinner Styling */
+        .loading-spinner {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 6px solid #54d76c46;
+            border-top: 6px solid #54D76C;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            z-index: 1000; /* Ensure it's on top */
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            .login-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            button[type="submit"] {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <div class="login-container">
+        <img src="/assets/Logo-dark.png" alt="AutoVault Logo" class="logo-img">
+        <h1>Sign In</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Go</button>
+        </form>
+        <div id="messageBanner" class="message-banner"></div>
+    </div>
+    <div id="loadingSpinner" class="loading-spinner"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to DOM elements
+            const loginForm = document.getElementById('loginForm');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const messageBanner = document.getElementById('messageBanner');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            // Function to show the loading spinner
+            function showLoadingSpinner() {
+                loadingSpinner.classList.add('show');
+            }
+
+            // Function to hide the loading spinner
+            function hideLoadingSpinner() {
+                loadingSpinner.classList.remove('show');
+            }
+
+            // Function to display messages in the banner
+            function showMessage(message, type) {
+                messageBanner.textContent = message;
+                messageBanner.className = `message-banner ${type}`; // Add type class (success/error)
+                // Hide the message after 5 seconds
+                setTimeout(() => {
+                    messageBanner.className = 'message-banner'; // Reset class to hide
+                    messageBanner.textContent = '';
+                }, 5000);
+            }
+
+            // Event listener for the login form submission
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default form submission
+
+                showLoadingSpinner(); // Show spinner
+
+                const email = emailInput.value;
+                const password = passwordInput.value;
+
+                try {
+                    // Send login request to the backend
+                    const response = await fetch('http://localhost:5000/login', { // Assuming Flask runs on port 5000
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') {
+                        // Store user information in localStorage upon successful login
+                        localStorage.setItem('userId', data.id);
+                        localStorage.setItem('userName', data.name);
+                        localStorage.setItem('userRole', data.role);
+
+                        showMessage('Login Success!', 'success');
+                        // Redirect to the dashboard after a short delay
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1000);
+                    } else {
+                        // Display error message from the backend
+                        showMessage(data.message || 'Login failed. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    showMessage('An error occurred. Please try again later.', 'error');
+                } finally {
+                    hideLoadingSpinner(); // Hide spinner
+                }
+            });
+        });
+    </script>
+</body>
+</html>

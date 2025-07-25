@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoVault Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+        /* General Body and Layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Header Styling */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .header .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            font-size: 1em;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .logout-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .logout-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-1px);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex: 1; /* Take remaining space */
+            flex-direction: row; /* Default for desktop */
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            background-color: #34495e;
+            color: white;
+            width: 250px;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar nav ul li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar nav ul li a {
+            display: block;
+            padding: 12px 25px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s ease, padding-left 0.3s ease;
+            border-left: 5px solid transparent; /* For active indicator */
+        }
+
+        .sidebar nav ul li a:hover {
+            background-color: #4a627a;
+            padding-left: 30px;
+        }
+
+        .sidebar nav ul li a.active {
+            background-color: #4CAF50;
+            border-left-color: #27ae60;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1; /* Take remaining space */
+            padding: 25px;
+            background-color: #ffffff;
+            position: relative; /* For spinner and banner positioning */
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none; /* Hidden by default */
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .content-section.active {
+            display: block; /* Show active section */
+        }
+
+        .content-section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Form Group Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="file"] {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+
+        /* Button Styling */
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        /* Files List Table */
+        .files-list-container {
+            margin-top: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .files-list-container h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #filesTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #filesTable th,
+        #filesTable td {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: left;
+        }
+
+        #filesTable th {
+            background-color: #eef;
+            font-weight: 600;
+            color: #444;
+        }
+
+        #filesTable tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        #filesTable tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        #noFilesMessage {
+            text-align: center;
+            color: #777;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* Diff Output */
+        .diff-output-container {
+            margin-top: 30px;
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .diff-output-container h3 {
+            color: #61dafb; /* A light blue for headings */
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        #diffOutput {
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            word-break: break-all; /* Break long words */
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        /* Diff line colors */
+        #diffOutput .diff-added {
+            color: #a7e22e; /* Green for added lines */
+        }
+
+        #diffOutput .diff-removed {
+            color: #f92672; /* Red for removed lines */
+        }
+
+        #diffOutput .diff-context {
+            color: #f8f8f2; /* Default text color for context lines */
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Message Banner Styling (re-used from login) */
+        .message-banner {
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            position: sticky; /* Make it sticky */
+            top: 20px; /* Position from top */
+            z-index: 999; /* Ensure it's above other content */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-banner.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-banner.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Loading Spinner Styling (re-used from login) */
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            z-index: 1000;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .main-content {
+                flex-direction: column; /* Stack sidebar and content */
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 10px 0;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar nav ul {
+                display: flex; /* Make nav items horizontal */
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 5px;
+            }
+
+            .sidebar nav ul li {
+                margin-bottom: 0;
+            }
+
+            .sidebar nav ul li a {
+                padding: 10px 15px;
+                border-left: none; /* Remove left border for horizontal nav */
+                border-bottom: 3px solid transparent; /* Use bottom border for active */
+            }
+
+            .sidebar nav ul li a:hover {
+                padding-left: 15px; /* Reset padding-left */
+                background-color: #4a627a;
+            }
+
+            .sidebar nav ul li a.active {
+                border-left-color: transparent; /* Reset left border */
+                border-bottom-color: #27ae60; /* Active indicator at bottom */
+            }
+
+            .content-area {
+                padding: 15px;
+            }
+
+            .content-section {
+                padding: 15px;
+            }
+
+            .content-section h2 {
+                font-size: 1.5em;
+            }
+
+            .files-list-container {
+                overflow-x: auto; /* Enable horizontal scrolling for table */
+            }
+
+            #filesTable {
+                min-width: 600px; /* Ensure table doesn't get too squished */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header .logo {
+                font-size: 1.5em;
+            }
+
+            .header .user-info {
+                font-size: 0.9em;
+            }
+
+            .logout-button {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+
+            .sidebar nav ul {
+                flex-direction: column; /* Stack nav items vertically again for very small screens */
+                align-items: stretch;
+            }
+
+            .sidebar nav ul li a {
+                text-align: center;
+                border-bottom: none; /* Remove bottom border for vertical nav */
+                border-left: 5px solid transparent; /* Restore left border for active */
+            }
+
+            .sidebar nav ul li a.active {
+                border-left-color: #27ae60; /* Restore left border for active */
+                border-bottom-color: transparent;
+            }
+
+            .content-area {
+                padding: 10px;
+            }
+
+            .content-section {
+                padding: 10px;
+            }
+
+            .form-group input {
+                padding: 10px;
+            }
+
+            button[type="submit"] {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo">AutoVault</div>
+            <div class="user-info">
+                Welcome, <span id="userNameDisplay"></span> (<span id="userRoleDisplay"></span>)
+                <button id="logoutButton" class="logout-button">Logout</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <nav>
+                    <ul>
+                        <li><a href="#" id="navUploadFile" class="active">Upload File</a></li>
+                        <li><a href="#" id="navViewFiles">View Files List</a></li>
+                        <li class="admin-only"><a href="#" id="navRollbackFile">Rollback File</a></li>
+                        <li class="admin-only"><a href="#" id="navDownloadFile">Download File</a></li>
+                        <li class="admin-only"><a href="#" id="navCompareVersions">Compare Versions</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Content Sections -->
+            <main class="content-area">
+                <div id="messageBanner" class="message-banner"></div>
+                <div id="loadingSpinner" class="loading-spinner"></div>
+
+                <!-- Upload File Section -->
+                <section id="uploadFileSection" class="content-section active">
+                    <h2>Upload New File</h2>
+                    <form id="uploadForm">
+                        <div class="form-group">
+                            <label for="uploadFile">Select File:</label>
+                            <input type="file" id="uploadFile" name="file" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadMachineId">Machine ID:</label>
+                            <input type="number" id="uploadMachineId" name="machine_id" required>
+                        </div>
+                        <button type="submit">Upload</button>
+                    </form>
+                </section>
+
+                <!-- View Files List Section -->
+                <section id="viewFilesSection" class="content-section">
+                    <h2>View Files List</h2>
+                    <form id="viewFilesForm">
+                        <div class="form-group">
+                            <label for="viewMachineId">Machine ID:</label>
+                            <input type="number" id="viewMachineId" required>
+                        </div>
+                        <button type="submit">View Files</button>
+                    </form>
+                    <div id="filesListContainer" class="files-list-container">
+                        <h3>Files for Machine <span id="currentMachineIdDisplay"></span></h3>
+                        <table id="filesTable">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Version</th>
+                                    <th>Uploaded By</th>
+                                    <th>Upload Time</th>
+                                    <th>File Hash</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- File data will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                        <p id="noFilesMessage" class="hidden">No files found for this machine ID.</p>
+                    </div>
+                </section>
+
+                <!-- Rollback File Section (Admin Only) -->
+                <section id="rollbackFileSection" class="content-section admin-restricted">
+                    <h2>Rollback File Version</h2>
+                    <form id="rollbackForm">
+                        <div class="form-group">
+                            <label for="rollbackMachineId">Machine ID:</label>
+                            <input type="number" id="rollbackMachineId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rollbackFileName">File Name:</label>
+                            <input type="text" id="rollbackFileName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rollbackTargetVersion">Target Version:</label>
+                            <input type="number" id="rollbackTargetVersion" required>
+                        </div>
+                        <button type="submit">Rollback</button>
+                    </form>
+                </section>
+
+                <!-- Download File Section (Admin Only) -->
+                <section id="downloadFileSection" class="content-section admin-restricted">
+                    <h2>Download File Version</h2>
+                    <form id="downloadForm">
+                        <div class="form-group">
+                            <label for="downloadMachineId">Machine ID:</label>
+                            <input type="number" id="downloadMachineId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="downloadFileName">File Name:</label>
+                            <input type="text" id="downloadFileName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="downloadVersionNo">Version Number:</label>
+                            <input type="number" id="downloadVersionNo" required>
+                        </div>
+                        <button type="submit">Download</button>
+                    </form>
+                </section>
+
+                <!-- Compare Versions Section (Admin Only) -->
+                <section id="compareVersionsSection" class="content-section admin-restricted">
+                    <h2>Compare File Versions</h2>
+                    <form id="compareForm">
+                        <div class="form-group">
+                            <label for="compareMachineId">Machine ID:</label>
+                            <input type="number" id="compareMachineId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="compareFileName">File Name:</label>
+                            <input type="text" id="compareFileName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="compareVersionA">Version A:</label>
+                            <input type="number" id="compareVersionA" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="compareVersionB">Version B:</label>
+                            <input type="number" id="compareVersionB" required>
+                        </div>
+                        <button type="submit">Compare</button>
+                    </form>
+                    <div id="diffOutputContainer" class="diff-output-container hidden">
+                        <h3>Differences</h3>
+                        <pre id="diffOutput"></pre>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Element References ---
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userRoleDisplay = document.getElementById('userRoleDisplay');
+            const logoutButton = document.getElementById('logoutButton');
+            const messageBanner = document.getElementById('messageBanner');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            // Sidebar navigation links
+            const navUploadFile = document.getElementById('navUploadFile');
+            const navViewFiles = document.getElementById('navViewFiles');
+            const navRollbackFile = document.getElementById('navRollbackFile');
+            const navDownloadFile = document.getElementById('navDownloadFile');
+            const navCompareVersions = document.getElementById('navCompareVersions');
+
+            // Content sections
+            const uploadFileSection = document.getElementById('uploadFileSection');
+            const viewFilesSection = document.getElementById('viewFilesSection');
+            const rollbackFileSection = document.getElementById('rollbackFileSection');
+            const downloadFileSection = document.getElementById('downloadFileSection');
+            const compareVersionsSection = document.getElementById('compareVersionsSection');
+
+            // Forms
+            const uploadForm = document.getElementById('uploadForm');
+            const viewFilesForm = document.getElementById('viewFilesForm');
+            const rollbackForm = document.getElementById('rollbackForm');
+            const downloadForm = document.getElementById('downloadForm');
+            const compareForm = document.getElementById('compareForm');
+
+            // Specific elements within sections
+            const filesTableBody = document.querySelector('#filesTable tbody');
+            const currentMachineIdDisplay = document.getElementById('currentMachineIdDisplay');
+            const noFilesMessage = document.getElementById('noFilesMessage');
+            const diffOutputContainer = document.getElementById('diffOutputContainer');
+            const diffOutput = document.getElementById('diffOutput');
+
+            // --- User Data from localStorage ---
+            const userId = localStorage.getItem('userId');
+            const userName = localStorage.getItem('userName');
+            const userRole = localStorage.getItem('userRole');
+
+            // --- Constants ---
+            const API_BASE_URL = 'http://localhost:5000'; // Your Flask backend URL
+
+            // --- Initial Setup ---
+
+            // Redirect to login if not authenticated
+            if (!userId || !userName || !userRole) {
+                window.location.href = 'login.html';
+                return; // Stop execution if not logged in
+            }
+
+            // Display user info in header
+            userNameDisplay.textContent = userName;
+            userRoleDisplay.textContent = userRole;
+
+            // Apply role-based restrictions
+            if (userRole !== 'admin') {
+                document.querySelectorAll('.admin-only').forEach(element => {
+                    element.classList.add('hidden'); // Hide admin-only sidebar links
+                });
+                document.querySelectorAll('.admin-restricted').forEach(section => {
+                    section.remove(); // Remove admin-only sections entirely from DOM
+                });
+            }
+
+            // Show initial section (Upload File)
+            showSection('uploadFileSection');
+
+            // --- Utility Functions ---
+
+            /**
+             * Shows a specific content section and hides others.
+             * @param {string} sectionId The ID of the section to show.
+             */
+            function showSection(sectionId) {
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+
+                // Update active class on sidebar links
+                document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                const activeLink = document.getElementById(`nav${sectionId.replace('Section', '')}`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            /**
+             * Displays a message banner (success or error).
+             * @param {string} message The message to display.
+             * @param {string} type 'success' or 'error'.
+             */
+            function showMessage(message, type) {
+                messageBanner.textContent = message;
+                messageBanner.className = `message-banner ${type}`;
+                setTimeout(() => {
+                    messageBanner.className = 'message-banner'; // Reset to hide
+                    messageBanner.textContent = '';
+                }, 5000);
+            }
+
+            /**
+             * Shows the loading spinner.
+             */
+            function showLoadingSpinner() {
+                loadingSpinner.classList.add('show');
+            }
+
+            /**
+             * Hides the loading spinner.
+             */
+            function hideLoadingSpinner() {
+                loadingSpinner.classList.remove('show');
+            }
+
+            // --- Event Listeners for Navigation ---
+            navUploadFile.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection('uploadFileSection');
+            });
+
+            navViewFiles.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection('viewFilesSection');
+            });
+
+            if (userRole === 'admin') {
+                navRollbackFile.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection('rollbackFileSection');
+                });
+                navDownloadFile.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection('downloadFileSection');
+                });
+                navCompareVersions.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection('compareVersionsSection');
+                });
+            }
+
+            // --- Logout Functionality ---
+            logoutButton.addEventListener('click', () => {
+                localStorage.clear(); // Clear all user data
+                window.location.href = 'login.html'; // Redirect to login page
+            });
+
+            // --- Form Submissions ---
+
+            // 1. Upload File Form
+            uploadForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                showLoadingSpinner();
+
+                const fileInput = document.getElementById('uploadFile');
+                const machineIdInput = document.getElementById('uploadMachineId');
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('machine_id', machineIdInput.value);
+                formData.append('uploaded_by', userId); // Use the logged-in user's ID
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/upload`, {
+                        method: 'POST',
+                        body: formData, // FormData does not need 'Content-Type' header
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') {
+                        showMessage(`File uploaded successfully! Version: v${data.version_no}`, 'success');
+                        uploadForm.reset(); // Clear form
+                    } else {
+                        showMessage(data.message || 'File upload failed.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    showMessage('An error occurred during file upload.', 'error');
+                } finally {
+                    hideLoadingSpinner();
+                }
+            });
+
+            // 2. View Files Form
+            viewFilesForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                showLoadingSpinner();
+
+                const machineId = document.getElementById('viewMachineId').value;
+                filesTableBody.innerHTML = ''; // Clear previous results
+                noFilesMessage.classList.add('hidden'); // Hide no files message
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/files/${machineId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // No need for user_id in GET params if role check is on backend via session/token
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') {
+                        if (data.files && data.files.length > 0) {
+                            currentMachineIdDisplay.textContent = machineId;
+                            data.files.forEach(file => {
+                                const row = filesTableBody.insertRow();
+                                row.insertCell().textContent = file.file_name;
+                                row.insertCell().textContent = `v${file.version_no}`;
+                                row.insertCell().textContent = file.uploaded_by; // This should ideally be user name
+                                row.insertCell().textContent = new Date(file.created_at).toLocaleString();
+                                row.insertCell().textContent = file.file_hash.substring(0, 10) + '...'; // Truncate hash
+                            });
+                            filesTableBody.closest('.files-list-container').classList.remove('hidden');
+                        } else {
+                            noFilesMessage.classList.remove('hidden');
+                            filesTableBody.closest('.files-list-container').classList.add('hidden'); // Hide table
+                            currentMachineIdDisplay.textContent = machineId;
+                        }
+                        showMessage('Files loaded successfully.', 'success');
+                    } else {
+                        showMessage(data.message || 'Failed to fetch files.', 'error');
+                        filesTableBody.closest('.files-list-container').classList.add('hidden'); // Hide table
+                    }
+                } catch (error) {
+                    console.error('Error fetching files:', error);
+                    showMessage('An error occurred while fetching files.', 'error');
+                    filesTableBody.closest('.files-list-container').classList.add('hidden'); // Hide table
+                } finally {
+                    hideLoadingSpinner();
+                }
+            });
+
+            // 3. Rollback File Form (Admin Only)
+            if (userRole === 'admin') {
+                rollbackForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    showLoadingSpinner();
+
+                    const machineId = document.getElementById('rollbackMachineId').value;
+                    const fileName = document.getElementById('rollbackFileName').value;
+                    const targetVersion = document.getElementById('rollbackTargetVersion').value;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/rollback`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                machine_id: parseInt(machineId),
+                                file_name: fileName,
+                                target_version: parseInt(targetVersion),
+                                uploaded_by: parseInt(userId) // Admin performing rollback
+                            }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.status === 'success') {
+                            showMessage(data.message, 'success');
+                            rollbackForm.reset();
+                        } else {
+                            showMessage(data.message || 'Rollback failed.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error during rollback:', error);
+                        showMessage('An error occurred during rollback.', 'error');
+                    } finally {
+                        hideLoadingSpinner();
+                    }
+                });
+            }
+
+            // 4. Download File Form (Admin Only)
+            if (userRole === 'admin') {
+                downloadForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    showLoadingSpinner();
+
+                    const machineId = document.getElementById('downloadMachineId').value;
+                    const fileName = document.getElementById('downloadFileName').value;
+                    const versionNo = document.getElementById('downloadVersionNo').value;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/download`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                machine_id: parseInt(machineId),
+                                file_name: fileName,
+                                version_no: parseInt(versionNo),
+                                user_id: parseInt(userId) // For backend role check
+                            }),
+                        });
+
+                        if (response.ok) {
+                            // Get filename from Content-Disposition header or use a default
+                            const contentDisposition = response.headers.get('Content-Disposition');
+                            let filename = 'downloaded_file';
+                            if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+                                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                                if (filenameMatch && filenameMatch[1]) {
+                                    filename = filenameMatch[1];
+                                }
+                            } else {
+                                // Fallback if header not present, construct a name
+                                filename = `${fileName}_v${versionNo}${fileName.substring(fileName.lastIndexOf('.'))}`;
+                            }
+
+                            // Create a blob from the response and trigger download
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url); // Clean up
+
+                            showMessage('File downloaded successfully!', 'success');
+                        } else {
+                            const errorData = await response.json();
+                            showMessage(errorData.message || 'File download failed.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error during download:', error);
+                        showMessage('An error occurred during download.', 'error');
+                    } finally {
+                        hideLoadingSpinner();
+                    }
+                });
+            }
+
+            // 5. Compare Versions Form (Admin Only)
+            if (userRole === 'admin') {
+                compareForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    showLoadingSpinner();
+
+                    const machineId = document.getElementById('compareMachineId').value;
+                    const fileName = document.getElementById('compareFileName').value;
+                    const versionA = document.getElementById('compareVersionA').value;
+                    const versionB = document.getElementById('compareVersionB').value;
+
+                    diffOutput.textContent = ''; // Clear previous diff
+                    diffOutputContainer.classList.add('hidden'); // Hide diff container
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/diff`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                machine_id: parseInt(machineId),
+                                file_name: fileName,
+                                version_a: parseInt(versionA),
+                                version_b: parseInt(versionB),
+                                user_id: parseInt(userId) // For backend role check
+                            }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.status === 'Success') {
+                            if (data.diff && data.diff.length > 0) {
+                                // Apply syntax highlighting for diff
+                                const formattedDiff = data.diff.map(line => {
+                                    if (line.startsWith('+')) {
+                                        return `<span class="diff-added">${line}</span>`;
+                                    } else if (line.startsWith('-')) {
+                                        return `<span class="diff-removed">${line}</span>`;
+                                    } else {
+                                        return `<span class="diff-context">${line}</span>`;
+                                    }
+                                }).join('\n');
+                                diffOutput.innerHTML = formattedDiff;
+                                diffOutputContainer.classList.remove('hidden');
+                            } else {
+                                diffOutput.textContent = 'No differences found between these versions.';
+                                diffOutputContainer.classList.remove('hidden');
+                            }
+                            showMessage('Diff generated successfully.', 'success');
+                        } else {
+                            showMessage(data.message || 'Failed to compare versions.', 'error');
+                            diffOutputContainer.classList.add('hidden');
+                        }
+                    } catch (error) {
+                        console.error('Error comparing versions:', error);
+                        showMessage('An error occurred during version comparison.', 'error');
+                        diffOutputContainer.classList.add('hidden');
+                    } finally {
+                        hideLoadingSpinner();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
