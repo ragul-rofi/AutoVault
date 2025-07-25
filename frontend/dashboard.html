@@ -30,13 +30,14 @@
 
         /* Header Styling */
         .header {
-            background-color: #2c3e50;
+            font-family: 'Poppins';
+            background-color: #1A597E;
             color: white;
             padding: 15px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
 
@@ -49,12 +50,12 @@
             display: flex;
             align-items: center;
             font-size: 1em;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .logout-button {
-            background-color: #e74c3c;
+            background-color: #e7ab3c;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -62,11 +63,12 @@
             cursor: pointer;
             font-size: 0.9em;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Poppins';
         }
 
         .logout-button:hover {
-            background-color: #c0392b;
-            transform: translateY(-1px);
+            background-color: #f93232;
+            transform: translateY(-5px);
         }
 
         /* Main Content Area */
@@ -78,7 +80,8 @@
 
         /* Sidebar Navigation */
         .sidebar {
-            background-color: #34495e;
+            font-family: 'Poppins';
+            background: linear-gradient(#1A597E, #051118);
             color: white;
             width: 250px;
             padding: 20px 0;
@@ -106,8 +109,10 @@
         }
 
         .sidebar nav ul li a:hover {
-            background-color: #4a627a;
+            background-color: #77ed69;
             padding-left: 30px;
+            color: rgb(0, 0, 0);
+            font-weight: 600;
         }
 
         .sidebar nav ul li a.active {
@@ -120,7 +125,7 @@
         .content-area {
             flex: 1; /* Take remaining space */
             padding: 25px;
-            background-color: #ffffff;
+            background: linear-gradient(#1A597E, #051118);
             position: relative; /* For spinner and banner positioning */
             overflow-y: auto; /* Enable scrolling for content */
         }
@@ -130,7 +135,7 @@
             display: none; /* Hidden by default */
             padding: 20px;
             border-radius: 10px;
-            background-color: #f9f9f9;
+            background-color: #ffffff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
         }
@@ -238,11 +243,11 @@
         }
 
         #filesTable tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #9adff42a;
         }
 
         #filesTable tbody tr:hover {
-            background-color: #f0f0f0;
+            background-color: #baffb6;
         }
 
         #noFilesMessage {
@@ -478,7 +483,7 @@
         <header class="header">
             <div class="logo">AutoVault</div>
             <div class="user-info">
-                Welcome, <span id="userNameDisplay"></span> (<span id="userRoleDisplay"></span>)
+                Welcome, <span id="userNameDisplay"></span>-<span id="userRoleDisplay"></span>
                 <button id="logoutButton" class="logout-button">Logout</button>
             </div>
         </header>
@@ -489,10 +494,10 @@
             <aside class="sidebar">
                 <nav>
                     <ul>
-                        <li><a href="#" id="navUploadFile" class="active">Upload File</a></li>
-                        <li><a href="#" id="navViewFiles">View Files List</a></li>
-                        <li class="admin-only"><a href="#" id="navRollbackFile">Rollback File</a></li>
-                        <li class="admin-only"><a href="#" id="navDownloadFile">Download File</a></li>
+                        <li><a href="#" id="navUploadFile" class="active">Upload</a></li>
+                        <li><a href="#" id="navViewFiles">View Files</a></li>
+                        <li class="admin-only"><a href="#" id="navRollbackFile">Rollback</a></li>
+                        <li class="admin-only"><a href="#" id="navDownloadFile">Download</a></li>
                         <li class="admin-only"><a href="#" id="navCompareVersions">Compare Versions</a></li>
                     </ul>
                 </nav>
