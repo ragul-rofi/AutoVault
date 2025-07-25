@@ -204,7 +204,7 @@ def diff_versions():
         version_a = int(version_a)
         version_b = int(version_b)
 
-    except Exception as e:
+    except Exception:
         return jsonify({
             "status" : "Fail",
             "message" : "Invalid Input types from diff"
