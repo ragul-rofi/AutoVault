@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, session
 import os
 from utils.auth import authenticate_user
 from utils.file_utils import save_file_and_log 
@@ -6,6 +6,7 @@ from utils.file_utils import get_files_by_machine
 from utils.file_utils import rollback_file_version , get_file_path, get_file_diff
 from functools import wraps
 from utils.auth import get_user_role
+from flask_cors import CORS
 
 #Privilege Checker func
 def require_role(allowed_roles):
@@ -30,6 +31,7 @@ def require_role(allowed_roles):
     return decorator
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def home():
@@ -55,6 +57,19 @@ def login():
             "status": "fail",
             "message": "Invalid Credentials"
         }), 401
+    
+@app.route('/whoami')
+def whoami():
+    user = session.get('user')
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    return jsonify({
+        'user': {
+            'email': user.get('email'),
+            'role': user.get('role')
+        }
+    })
 
 # Upload api route
 @app.route('/upload', methods=['POST'])
