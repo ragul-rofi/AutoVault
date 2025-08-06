@@ -7,9 +7,17 @@
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Jersey+10&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+        /* Global Box-Sizing for consistent layout */
+        html {
+            height: 100%; /* Ensure html takes full viewport height */
+        }
+        *, *::before, *::after {
+            box-sizing: border-box; /* Apply border-box globally */
+        }
+
         /* General Body and Layout */
         body {
             font-family: 'Poppins', sans-serif;
@@ -70,7 +78,15 @@
             background-color: #f93232;
             transform: translateY(-5px);
             border: 2px solid #f93232;
-           
+        }
+
+        /* New Menu Icon for Mobile */
+        .menu-icon {
+            display: none; /* Hidden by default on desktop */
+            font-size: 2em;
+            cursor: pointer;
+            color: white;
+            /* Order and margin will be set in media query for mobile */
         }
 
         /* Main Content Area */
@@ -78,17 +94,20 @@
             display: flex;
             flex: 1; /* Take remaining space */
             flex-direction: row; /* Default for desktop */
+            /* Moved background from .content-area to here to ensure it fills the entire main section */
+            background: linear-gradient(#1A597E, #051118);
         }
 
         /* Sidebar Navigation */
         .sidebar {
             font-family: 'Poppins';
-            background: linear-gradient(#1A597E, #051118);
+            background: linear-gradient(#1A597E, #051118); /* Keep background for sidebar itself */
             color: white;
             width: 250px;
             padding: 20px 0;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             flex-shrink: 0; /* Prevent shrinking */
+            transition: transform 0.3s ease-in-out; /* Smooth transition for slide effect */
         }
 
         .sidebar nav ul {
@@ -108,7 +127,6 @@
             text-decoration: none;
             transition: background-color 0.3s ease, padding-left 0.3s ease;
             border-left: 5px solid transparent; /* For active indicator */
-
             border-radius: 0px 6px 6px 0px;
         }
 
@@ -129,7 +147,7 @@
         .content-area {
             flex: 1; /* Take remaining space */
             padding: 25px;
-            background: linear-gradient(#1A597E, #051118);
+            /* Removed background from here as it's now on .main-content */
             position: relative; /* For spinner and banner positioning */
             overflow-y: auto; /* Enable scrolling for content */
         }
@@ -191,7 +209,6 @@
 
         /* Button Styling */
         button[type="submit"] {
-
             background-color: #58fc46;
             color: rgb(0, 0, 0);
             padding: 12px 25px;
@@ -230,7 +247,7 @@
         }
 
         #filesTable {
-            width: 100%;
+            width: 100%; /* Ensure table tries to take full width */
             border-collapse: collapse;
             margin-top: 20px;
         }
@@ -307,7 +324,7 @@
             display: none !important;
         }
 
-        /* Message Banner Styling (re-used from login) */
+        /* Message Banner Styling */
         .message-banner {
             margin-bottom: 20px;
             padding: 12px;
@@ -338,7 +355,7 @@
             visibility: visible;
         }
 
-        /* Loading Spinner Styling (re-used from login) */
+        /* Loading Spinner Styling */
         .loading-spinner {
             display: none;
             position: fixed;
@@ -363,17 +380,34 @@
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        /* Responsive Adjustments */
+        /* Responsive Adjustments for Mobile (max-width: 768px) */
         @media (max-width: 768px) {
             .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+                flex-direction: row; /* Keep items in a row */
+                align-items: center; /* Vertically align items */
+                justify-content: space-between; /* Distribute space */
+                flex-wrap: nowrap; /* Prevent wrapping */
+                padding: 10px 15px; /* Adjust header padding for mobile */
+            }
+
+            .header .logo {
+                font-size: 1.5em; /* Adjust logo size for mobile */
+                flex-grow: 1; /* Allow logo to take available space */
+                text-align: center; /* Center the logo */
+                order: 2; /* Place logo in the middle */
             }
 
             .header .user-info {
-                width: 100%;
-                justify-content: space-between;
+                width: auto; /* Reset width to auto */
+                justify-content: flex-end; /* Push user info to the right */
+                gap: 5px; /* Smaller gap for user info items */
+                order: 3; /* Place user info on the right */
+            }
+
+            .menu-icon {
+                display: block; /* Show menu icon on mobile */
+                order: 1; /* Place it on the far left */
+                margin-right: 15px; /* Space between icon and logo */
             }
 
             .main-content {
@@ -381,39 +415,51 @@
             }
 
             .sidebar {
-                width: 100%;
-                padding: 10px 0;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                position: fixed; /* Use fixed for proper overlay */
+                top: 65px; /* Adjust based on header height */
+                left: 0;
+                height: calc(100% - 65px); /* Full height minus header */
+                z-index: 10;
+                transform: translateX(-100%); /* Hide it by default */
+                width: 250px; /* Fixed width for the sliding menu */
+                padding: 20px 0; /* Restore original padding for vertical menu */
+                background: linear-gradient(#1A597E, #051118); /* Ensure background is set */
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); /* Add shadow for pop-out effect */
+            }
+
+            .sidebar.show {
+                transform: translateX(0); /* Show the sidebar */
             }
 
             .sidebar nav ul {
-                display: flex; /* Make nav items horizontal */
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 5px;
-            }
-
-            .sidebar nav ul li {
-                margin-bottom: 0;
+                display: flex; /* Keep flex, but change direction */
+                flex-direction: column; /* Stack nav items vertically */
+                flex-wrap: nowrap; /* Prevent wrapping */
+                justify-content: flex-start; /* Align items to start */
+                gap: 0; /* Remove gap between vertical items */
             }
 
             .sidebar nav ul li a {
-                padding: 10px 15px;
-                border-left: none; /* Remove left border for horizontal nav */
-                border-bottom: 3px solid transparent; /* Use bottom border for active */
+                padding: 12px 25px; /* Restore original padding */
+                border-left: 5px solid transparent; /* Restore left border for active indicator */
+                border-bottom: none; /* Remove horizontal border */
+                border-radius: 0px 6px 6px 0px; /* Restore border radius */
             }
 
             .sidebar nav ul li a:hover {
-                padding-left: 15px; /* Reset padding-left */
-                background-color: #4a627a;
+                padding-left: 30px; /* Restore hover padding */
+                background-color: #77ed69;
+                color: rgb(0, 0, 0);
+                font-weight: 600;
             }
 
             .sidebar nav ul li a.active {
-                border-left-color: transparent; /* Reset left border */
-                border-bottom-color: #27ae60; /* Active indicator at bottom */
+                border-left-color: #27ae60; /* Restore left border for active */
+                border-bottom-color: transparent; /* Ensure no bottom border */
             }
 
             .content-area {
+                width: 100%; /* Content area takes full width */
                 padding: 15px;
             }
 
@@ -430,10 +476,12 @@
             }
 
             #filesTable {
-                min-width: 600px; /* Ensure table doesn't get too squished */
+                /* REMOVED: min-width: 600px; to prevent horizontal scrolling */
+                width: 100%; /* Ensure table tries to take full width */
             }
         }
 
+        /* Responsive Adjustments for very small screens (max-width: 480px) */
         @media (max-width: 480px) {
             .header .logo {
                 font-size: 1.5em;
@@ -447,23 +495,8 @@
                 padding: 6px 10px;
                 font-size: 0.8em;
             }
-
-            .sidebar nav ul {
-                flex-direction: column; /* Stack nav items vertically again for very small screens */
-                align-items: stretch;
-            }
-
-            .sidebar nav ul li a {
-                text-align: center;
-                border-bottom: none; /* Remove bottom border for vertical nav */
-                border-left: 5px solid transparent; /* Restore left border for active */
-            }
-
-            .sidebar nav ul li a.active {
-                border-left-color: #27ae60; /* Restore left border for active */
-                border-bottom-color: transparent;
-            }
-
+            /* The sidebar will remain 250px wide and slide in/out */
+            /* No changes needed for sidebar nav ul as it's already vertical from 768px breakpoint */
             .content-area {
                 padding: 10px;
             }
@@ -487,9 +520,9 @@
     <div class="dashboard-container">
         <!-- Header Section -->
         <header class="header">
+            <div class="menu-icon" id="menuIcon">&#9776;</div> <!-- Menu icon added here -->
             <div class="logo">AutoVault</div>
             <div class="user-info">
-
                 Welcome, <span id="userNameDisplay"></span>-<span id="userRoleDisplay"></span>
                 <button id="logoutButton" class="logout-button">Logout</button>
             </div>
@@ -548,7 +581,7 @@
                                 <tr>
                                     <th>File Name</th>
                                     <th>Version</th>
-                                    <th>Uploaded By</th>
+                                    <th>Uploaded By (emp_id)</th>
                                     <th>Upload Time</th>
                                     <th>File Hash</th>
                                 </tr>
@@ -639,6 +672,8 @@
             const logoutButton = document.getElementById('logoutButton');
             const messageBanner = document.getElementById('messageBanner');
             const loadingSpinner = document.getElementById('loadingSpinner');
+            const menuIcon = document.getElementById('menuIcon'); // Reference to the new menu icon
+            const sidebar = document.querySelector('.sidebar'); // Reference to the sidebar
 
             // Sidebar navigation links
             const navUploadFile = document.getElementById('navUploadFile');
@@ -751,7 +786,22 @@
                 loadingSpinner.classList.remove('show');
             }
 
-            // --- Event Listeners for Navigation ---
+            // --- Event Listeners for Navigation and Menu Toggle ---
+
+            // Toggle sidebar visibility when menu icon is clicked
+            menuIcon.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+            });
+
+            // Hide sidebar when a navigation link is clicked (useful for mobile UX)
+            document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            });
+
             navUploadFile.addEventListener('click', (e) => {
                 e.preventDefault();
                 showSection('uploadFileSection');
@@ -1022,7 +1072,7 @@
                                 diffOutputContainer.classList.remove('hidden');
                             } else {
                                 diffOutput.textContent = 'No differences found between these versions.';
-                                diffOutputContainer.classList.remove('hidden');
+                                diffOutputContainer.classList.add('hidden');
                             }
                             showMessage('Diff generated successfully.', 'success');
                         } else {
