@@ -1,8 +1,7 @@
 <script lang="ts">
     import { user } from './authStore';
-    import { theme } from './design/themeStore';
     import { Mail, Lock, Eye, EyeClosed } from '@lucide/svelte';
-    
+
     let email = '';
     let password = '';
     let error = '';
@@ -32,10 +31,10 @@
                     role: data.role
                 });
             } else {
-                error = data.message || 'Login failed';
+                error = data.message || 'Invalid credentials. Please try again.';
             }
         } catch (e) {
-            error = 'Could not connect to server';
+            error = 'Could not connect to server.';
         } finally {
             loading = false;
         }
@@ -43,264 +42,239 @@
 </script>
 
 <svelte:head>
-    <title>AutoVault — Sign In</title>
-    <meta name="description" content="Sign in to AutoVault — Secure File Versioning for PLC & CNC Programs." />
+    <title>AutoVault — Login</title>
 </svelte:head>
 
-<div class="login-page">
-    <div class="login-glow"></div>
-
+<div class="login-wrapper">
     <div class="login-card">
-        <div class="logo-section">
-            <img src="/assets/logo-av-2.png" alt="AutoVault" class="logo" />
-            <h1 class="brand">AutoVault</h1>
-            <p class="tagline">Secure file versioning for machine programs</p>
+        <!-- Prominent AV Pixel Logo -->
+        <div class="logo-container">
+            <img src="/assets/logo-av-2.png" alt="AV Logo" class="av-logo" on:error={(e) => (e.currentTarget.src = '/assets/logo-av-2.png')} />
+            <h1 class="welcome-title">Welcome Back</h1>
         </div>
 
         <form on:submit|preventDefault={handleLogin}>
-            <div class="input-group">
-                <label for="login-email">Email</label>
-                <div class="input-wrapper">
-                    <Mail size={18} strokeWidth={1.75} />
-                    <input
-                        id="login-email"
-                        type="email"
-                        bind:value={email}
-                        placeholder="you@company.com"
-                        required
-                        autocomplete="username"
-                    />
-                </div>
+            <!-- Clean Flat Email Input -->
+            <div class="input-box">
+                <Mail size={18} class="input-icon" />
+                <input
+                    type="email"
+                    bind:value={email}
+                    placeholder="email"
+                    required
+                    autocomplete="username"
+                />
             </div>
 
-            <div class="input-group">
-                <label for="login-password">Password</label>
-                <div class="input-wrapper">
-                    <Lock size={18} strokeWidth={1.75} />
-                    <input
-                        id="login-password"
-                        type={showPassword ? 'text' : 'password'}
-                        bind:value={password}
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    />
-                    <button
-                        type="button"
-                        class="toggle-pw"
-                        on:click={togglePasswordVisibility}
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                        {#if showPassword}
-                            <EyeClosed size={16} strokeWidth={1.75} />
-                        {:else}
-                            <Eye size={16} strokeWidth={1.75} />
-                        {/if}
-                    </button>
-                </div>
+            <!-- Clean Flat Password Input with Reveal -->
+            <div class="input-box">
+                <Lock size={18} class="input-icon" />
+                <input
+                    type={showPassword ? 'text' : 'password'}
+                    bind:value={password}
+                    placeholder="password"
+                    required
+                    autocomplete="current-password"
+                />
+                <button
+                    type="button"
+                    class="reveal-btn"
+                    on:click={togglePasswordVisibility}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                    {#if showPassword}
+                        <EyeClosed size={18} />
+                    {:else}
+                        <Eye size={18} />
+                    {/if}
+                </button>
             </div>
 
             {#if error}
-                <div class="error-msg">{error}</div>
+                <div class="error-banner">{error}</div>
             {/if}
 
-            <button type="submit" class="submit-btn" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
+            <!-- Solid Black Login Button -->
+            <button type="submit" class="login-btn" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
             </button>
         </form>
-
-        <p class="footer-text">
-            Secure · Versioned · Compliant
-        </p>
     </div>
 </div>
 
 <style>
-    .login-page {
+    .login-wrapper {
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
         width: 100vw;
         height: 100vh;
-        background: var(--color-canvas);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .login-glow {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(94, 106, 210, 0.06) 0%, transparent 70%);
-        pointer-events: none;
+        background: url('/assets/Login-bg.png') no-repeat center center fixed;
+        background-size: cover;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
     }
 
     .login-card {
-        position: relative;
         width: 100%;
-        max-width: 400px;
-        padding: var(--space-xl) var(--space-lg);
-        background: var(--color-surface-1);
-        border: 1px solid var(--color-hairline);
-        border-radius: var(--radius-xl);
-        animation: fadeUp 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 360px;
+        padding: 38px 32px 36px;
+        background: url('/assets/Login-card-bg.png') no-repeat center center / cover,
+                    linear-gradient(180deg, #ffffff 0%, #e2ebf8 45%, #9fc1f9 100%);
+        border-radius: 16px;
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+        animation: cardAppear 250ms ease-out;
     }
 
-    .logo-section {
-        text-align: center;
-        margin-bottom: var(--space-xl);
+    .logo-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 22px;
     }
 
-    .logo {
-        height: 48px;
+    .av-logo {
+        height: 64px;
         width: auto;
-        margin: 0 auto var(--space-md);
+        margin-bottom: 14px;
+        image-rendering: pixelated;
     }
 
-    .brand {
-        font-family: var(--font-display);
-        font-size: 28px;
-        font-weight: 700;
-        letter-spacing: -0.8px;
-        color: var(--color-ink);
-        margin: 0 0 var(--space-xxs);
-    }
-
-    .tagline {
-        font-size: 14px;
-        color: var(--color-ink-subtle);
+    .welcome-title {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 26px;
+        font-weight: 600;
+        color: #000000;
         margin: 0;
+        letter-spacing: -0.4px;
     }
 
     form {
+        width: 100%;
         display: flex;
         flex-direction: column;
-        gap: var(--space-md);
+        gap: 14px;
     }
 
-    .input-group {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-xxs);
-    }
-
-    .input-group label {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--color-ink-subtle);
-    }
-
-    .input-wrapper {
+    /* Flat Input Box - No Outer/Inner Highlighting Borders */
+    .input-box {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: 0 var(--space-sm);
-        background: var(--color-surface-2);
-        border: 1px solid var(--color-hairline);
-        border-radius: var(--radius-md);
-        color: var(--color-ink-tertiary);
-        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-    }
-
-    .input-wrapper:focus-within {
-        border-color: var(--color-primary-focus);
-        box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.25);
-    }
-
-    .input-wrapper input {
-        flex: 1;
+        gap: 10px;
+        padding: 0 14px;
+        height: 48px;
+        background: #ffffff;
         border: none;
-        background: transparent;
-        padding: 10px 0;
-        font-size: 15px;
-        color: var(--color-ink);
+        outline: none;
+        border-radius: 8px;
+        box-shadow: none;
+        transition: none;
+    }
+
+    .input-box:focus-within {
+        border: none;
         outline: none;
         box-shadow: none;
     }
 
-    .input-wrapper input::placeholder {
-        color: var(--color-ink-tertiary);
+    .input-box :global(.input-icon) {
+        color: #1a1a1a;
+        flex-shrink: 0;
     }
 
-    .toggle-pw {
+    .input-box input {
+        flex: 1;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        background: transparent;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 15px;
+        color: #000000;
+        padding: 0;
+    }
+
+    .input-box input:focus {
+        border: none;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .input-box input::placeholder {
+        color: #8e8e93;
+        font-size: 15px;
+    }
+
+    .reveal-btn {
         all: unset;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4px;
-        border-radius: var(--radius-xs);
-        color: var(--color-ink-tertiary);
+        color: #8e8e93;
         cursor: pointer;
-        transition: color var(--transition-fast);
+        transition: color 0.2s ease;
+        padding: 2px;
     }
 
-    .toggle-pw:hover {
-        color: var(--color-ink-muted);
+    .reveal-btn:hover {
+        color: #000000;
     }
 
-    .error-msg {
+    .error-banner {
         font-size: 13px;
-        color: var(--color-error);
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.1);
+        border-radius: 6px;
+        padding: 8px 12px;
         text-align: center;
-        padding: var(--space-xs) var(--space-sm);
-        background: var(--color-error-subtle);
-        border-radius: var(--radius-md);
     }
 
-    .submit-btn {
+    .login-btn {
+        margin-top: 10px;
+        height: 48px;
         width: 100%;
-        padding: 12px;
-        background: var(--color-primary);
-        color: var(--color-on-primary);
+        background: #000000;
+        color: #ffffff;
         border: none;
-        border-radius: var(--radius-md);
-        font-size: 15px;
-        font-weight: 600;
+        outline: none;
+        border-radius: 8px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 16px;
+        font-weight: 500;
         cursor: pointer;
-        transition: background var(--transition-fast), transform var(--transition-fast);
-        margin-top: var(--space-xs);
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .submit-btn:hover:not(:disabled) {
-        background: var(--color-primary-hover);
+    .login-btn:hover:not(:disabled) {
+        background: #1a1a1a;
+        transform: translateY(-1px);
     }
 
-    .submit-btn:active:not(:disabled) {
-        transform: scale(0.98);
+    .login-btn:active:not(:disabled) {
+        transform: translateY(0);
     }
 
-    .submit-btn:disabled {
-        opacity: 0.5;
+    .login-btn:disabled {
+        opacity: 0.6;
         cursor: not-allowed;
     }
 
-    .footer-text {
-        text-align: center;
-        font-size: 12px;
-        color: var(--color-ink-tertiary);
-        margin: var(--space-lg) 0 0;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    @keyframes fadeUp {
+    @keyframes cardAppear {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: scale(0.97);
         }
         to {
             opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .login-card {
-            margin: var(--space-md);
-            padding: var(--space-lg) var(--space-md);
+            transform: scale(1);
         }
     }
 </style>

@@ -81,7 +81,7 @@ def rollback_file():
 
 
 @file_bp.route("/download", methods=["POST"])
-@require_role("admin")
+@require_role("admin", "engineer", "viewer")
 def download_file():
     payload = request.get_json(silent=True) or request.form or {}
     machine_id = payload.get("machine_id")
@@ -112,7 +112,7 @@ def download_file():
 
 
 @file_bp.route("/diff", methods=["POST"])
-@require_role("admin")
+@require_role("admin", "engineer")
 def diff_file():
     payload = request.get_json(silent=True) or request.form or {}
     machine_id = payload.get("machine_id")
