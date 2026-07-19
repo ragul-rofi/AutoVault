@@ -1,10 +1,9 @@
 <script lang="ts">
     import { user } from '../authStore';
-    import { theme, toggleTheme } from '../design/themeStore';
     import {
         LayoutDashboard, Upload, List, RotateCcw, ArrowLeftRight,
         LogOut, User, Settings, BarChart3, Users, Shield,
-        Sun, Moon, ChevronLeft, Activity
+        ChevronLeft, Activity
     } from '@lucide/svelte';
 
     export let activeTab: string = 'overview';
@@ -41,15 +40,25 @@
 </script>
 
 <aside class="sidebar" class:collapsed>
+    <!-- Header with Brand & Collapse Toggle at the Top Right -->
     <div class="sidebar-header">
-        {#if !collapsed}
+        <div class="brand-left">
             <img src="/assets/logo-av-2.png" alt="AutoVault" class="sidebar-logo" />
-            <span class="sidebar-brand">AutoVault</span>
-        {:else}
-            <img src="/assets/logo-av-2.png" alt="AV" class="sidebar-logo mini" />
-        {/if}
+            {#if !collapsed}
+                <span class="sidebar-brand">AutoVault</span>
+            {/if}
+        </div>
+        <button
+            class="collapse-toggle-top"
+            on:click={() => collapsed = !collapsed}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label="Toggle Sidebar"
+        >
+            <ChevronLeft size={16} class={collapsed ? 'rotated' : ''} />
+        </button>
     </div>
 
+    <!-- Nav Items - Strict Left Alignment -->
     <nav class="sidebar-nav">
         {#each visibleItems as item}
             <button
@@ -66,19 +75,9 @@
         {/each}
     </nav>
 
+    <!-- Footer User Pill & Logout -->
     <div class="sidebar-footer">
-        <button class="theme-toggle" on:click={toggleTheme} title={$theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {#if $theme === 'dark'}
-                <Sun size={16} />
-            {:else}
-                <Moon size={16} />
-            {/if}
-            {#if !collapsed}
-                <span>{$theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-            {/if}
-        </button>
-
-        <div class="user-pill">
+        <div class="user-pill" title="Logged in as {$user?.name}">
             <div class="user-avatar">
                 <User size={14} />
             </div>
@@ -91,16 +90,12 @@
         </div>
 
         <button class="logout-btn" on:click={onLogout} title="Logout">
-            <LogOut size={14} />
+            <LogOut size={16} />
             {#if !collapsed}
                 <span>Logout</span>
             {/if}
         </button>
     </div>
-
-    <button class="collapse-toggle" on:click={() => collapsed = !collapsed} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
-        <ChevronLeft size={14} class={collapsed ? 'rotated' : ''} />
-    </button>
 </aside>
 
 <style>
@@ -126,19 +121,22 @@
     .sidebar-header {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-lg) var(--space-md);
+        justify-content: space-between;
+        padding: var(--space-md);
         min-height: var(--topbar-height);
+        border-bottom: 1px solid var(--color-hairline);
+    }
+
+    .brand-left {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
     }
 
     .sidebar-logo {
-        height: 28px;
+        height: 24px;
         width: auto;
         flex-shrink: 0;
-    }
-
-    .sidebar-logo.mini {
-        height: 22px;
     }
 
     .sidebar-brand {
@@ -150,13 +148,38 @@
         white-space: nowrap;
     }
 
+    .collapse-toggle-top {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--radius-md);
+        color: var(--color-ink-subtle);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        flex-shrink: 0;
+    }
+
+    .collapse-toggle-top:hover {
+        background: var(--color-surface-3);
+        color: var(--color-ink);
+        border-color: var(--color-hairline-strong);
+    }
+
+    .collapse-toggle-top :global(.rotated) {
+        transform: rotate(180deg);
+    }
+
     .sidebar-nav {
         flex: 1;
         padding: var(--space-xs);
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
     }
 
     .nav-item {
@@ -164,13 +187,14 @@
         align-items: center;
         gap: var(--space-sm);
         width: 100%;
-        padding: 10px var(--space-sm);
+        padding: 9px var(--space-sm);
         border: none;
         background: transparent;
         color: var(--color-ink-subtle);
         font-size: 14px;
         font-weight: 500;
         text-align: left;
+        justify-content: flex-start;
         border-radius: var(--radius-md);
         cursor: pointer;
         transition: all var(--transition-fast);
@@ -192,8 +216,8 @@
         content: '';
         position: absolute;
         left: 0;
-        top: 6px;
-        bottom: 6px;
+        top: 4px;
+        bottom: 4px;
         width: 3px;
         border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
         background: var(--color-primary);
@@ -212,54 +236,33 @@
     .nav-label {
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: left;
     }
 
     .sidebar-footer {
-        padding: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
         border-top: 1px solid var(--color-hairline);
         display: flex;
         flex-direction: column;
         gap: var(--space-xs);
     }
 
-    .theme-toggle {
-        display: flex;
-        align-items: center;
-        gap: var(--space-xs);
-        padding: 8px var(--space-sm);
-        border: none;
-        background: transparent;
-        color: var(--color-ink-subtle);
-        font-size: 13px;
-        font-weight: 500;
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        white-space: nowrap;
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .theme-toggle:hover {
-        background: var(--color-surface-2);
-        color: var(--color-ink-muted);
-    }
-
     .user-pill {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
         padding: var(--space-xs);
         background: var(--color-surface-2);
         border-radius: var(--radius-md);
+        justify-content: flex-start;
     }
 
     .user-avatar {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
         background: var(--color-primary);
         color: var(--color-on-primary);
         border-radius: var(--radius-full);
@@ -270,6 +273,7 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
+        text-align: left;
     }
 
     .user-name {
@@ -282,7 +286,7 @@
     }
 
     .user-role {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--color-ink-subtle);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -312,47 +316,11 @@
         border-color: var(--color-error);
     }
 
-    .collapse-toggle {
-        position: absolute;
-        top: 50%;
-        right: -12px;
-        transform: translateY(-50%);
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--color-surface-1);
-        border: 1px solid var(--color-hairline);
-        border-radius: var(--radius-full);
-        color: var(--color-ink-subtle);
-        cursor: pointer;
-        z-index: 51;
-        opacity: 0;
-        transition: all var(--transition-fast);
-    }
-
-    .sidebar:hover .collapse-toggle {
-        opacity: 1;
-    }
-
-    .collapse-toggle:hover {
-        background: var(--color-surface-2);
-        color: var(--color-ink);
-    }
-
-    .collapse-toggle :global(.rotated) {
-        transform: rotate(180deg);
-    }
-
     @media (max-width: 1024px) {
         .sidebar {
             width: var(--sidebar-collapsed);
         }
-        .sidebar-brand, .nav-label, .user-info, .theme-toggle span, .logout-btn span {
-            display: none;
-        }
-        .collapse-toggle {
+        .sidebar-brand, .nav-label, .user-info, .logout-btn span {
             display: none;
         }
     }
@@ -373,8 +341,7 @@
         }
 
         .sidebar-header,
-        .sidebar-footer,
-        .collapse-toggle {
+        .sidebar-footer {
             display: none;
         }
 

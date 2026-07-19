@@ -1,102 +1,161 @@
 <script lang="ts">
     import StatusBadge from '../components/StatusBadge.svelte';
-    import { Activity, BarChart3 } from '@lucide/svelte';
+    import { BarChart3, PieChart, ShieldCheck, TrendingUp, Calendar, FileCode, CheckCircle2, AlertOctagon } from '@lucide/svelte';
 
-    const usageHighlights = [
-        { label: 'Active Machines', value: '9', delta: '+2 this week' },
-        { label: 'Uploads (7d)', value: '54', delta: '+12% WoW' },
-        { label: 'Rollbacks (7d)', value: '3', delta: '-1 vs last week' },
-        { label: 'Avg. Approval', value: '18m', delta: '-6 min' },
+    const analyticsKPIs = [
+        { label: 'Avg. Revision Depth', value: '2.8 ver/file', sub: 'Depth ratio per program' },
+        { label: 'Rollback Frequency', value: '4.2%', sub: 'Low risk threshold (<5%)' },
+        { label: 'Code Churn Rate', value: '+14% / ver', sub: 'Average G-Code lines modified' },
+        { label: 'Hash Integrity', value: '100%', sub: 'Zero checksum corruption' },
     ];
 
-    const activityTimeline = [
-        { title: 'Upload completed', detail: 'pump_housing_v2.nc → Machine 101', meta: 'Today, 09:42', status: 'success' as const },
-        { title: 'Rollback executed', detail: 'turbine_blade_v1.nc → version 2', meta: 'Today, 08:15', status: 'warning' as const },
-        { title: 'Comparison generated', detail: 'valve_seal_v2.gcode vs v3', meta: 'Yesterday, 16:10', status: 'info' as const },
-        { title: 'Access updated', detail: 'Operator role added for A. Rivera', meta: 'Yesterday, 14:05', status: 'info' as const },
+    const fileFormatDistribution = [
+        { format: '.nc (Fanuc/Haas)', count: 28, percentage: '55%', size: '820 KB', color: 'var(--color-primary)' },
+        { format: '.gcode (Standard G-Code)', count: 15, percentage: '29%', size: '410 KB', color: 'var(--color-info)' },
+        { format: '.cnc (Siemens Sinumerik)', count: 8, percentage: '16%', size: '240 KB', color: 'var(--color-success)' },
     ];
 
-    const auditReports = [
-        { name: 'Weekly Compliance Snapshot', owner: 'QA Team', date: 'May 30, 2026', status: 'Ready' },
-        { name: 'Machine 101 Change Log', owner: 'Ops Lead', date: 'May 28, 2026', status: 'Ready' },
-        { name: 'Rollback Incident Review', owner: 'Admin', date: 'May 24, 2026', status: 'In Review' },
+    const weeklyHeatmap = [
+        { day: 'Mon', h08_12: 14, h12_16: 22, h16_20: 8 },
+        { day: 'Tue', h08_12: 18, h12_16: 34, h16_20: 12 },
+        { day: 'Wed', h08_12: 12, h12_16: 28, h16_20: 15 },
+        { day: 'Thu', h08_12: 24, h12_16: 42, h16_20: 19 },
+        { day: 'Fri', h08_12: 20, h12_16: 30, h16_20: 10 },
     ];
 
-    const usageSeries = [
-        { label: 'Mon', value: 28 }, { label: 'Tue', value: 42 }, { label: 'Wed', value: 35 },
-        { label: 'Thu', value: 54 }, { label: 'Fri', value: 48 }, { label: 'Sat', value: 22 }, { label: 'Sun', value: 31 },
+    const highChurnFiles = [
+        { file: 'turbine_blade.nc', machine: 'Machine 102', revisions: 3, riskLevel: 'Low' as const },
+        { file: 'pump_housing.nc', machine: 'Machine 101', revisions: 2, riskLevel: 'Optimal' as const },
+        { file: 'valve_seal.gcode', machine: 'Machine 103', revisions: 2, riskLevel: 'Optimal' as const },
+        { file: 'bracket_arm.cnc', machine: 'Machine 101', revisions: 4, riskLevel: 'Attention' as const },
     ];
-
-    const maxValue = Math.max(...usageSeries.map(d => d.value));
 </script>
 
 <div class="analytics-page">
+    <!-- Manufacturing Intelligence KPIs -->
     <div class="card">
         <div class="card-header">
-            <h3>Usage Analytics</h3>
-            <span class="card-action">Last 7 days</span>
+            <div>
+                <span class="eyebrow">Manufacturing Intelligence</span>
+                <h3>Code Drift & Revision Analytics</h3>
+            </div>
+            <StatusBadge variant="brand">Automated Metric Engine</StatusBadge>
         </div>
+
         <div class="stat-grid">
-            {#each usageHighlights as stat}
+            {#each analyticsKPIs as kpi}
                 <div class="stat-card">
-                    <span class="stat-label">{stat.label}</span>
-                    <span class="stat-value">{stat.value}</span>
-                    <span class="stat-delta">{stat.delta}</span>
+                    <span class="stat-label">{kpi.label}</span>
+                    <span class="stat-value">{kpi.value}</span>
+                    <span class="stat-sub">{kpi.sub}</span>
                 </div>
             {/each}
         </div>
+    </div>
 
-        <div class="chart-section">
-            <h4>Upload Frequency</h4>
-            <div class="mini-chart">
-                {#each usageSeries as day}
-                    <div class="bar-col" title="{day.label}: {day.value}">
-                        <div class="bar-fill" style="height: {(day.value / maxValue) * 100}%"></div>
-                        <span class="bar-label">{day.label}</span>
+    <div class="two-col">
+        <!-- File Format Breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <h3><FileCode size={18} /> Program Format Distribution</h3>
+            </div>
+            <div class="format-list">
+                {#each fileFormatDistribution as fmt}
+                    <div class="format-row">
+                        <div class="fmt-top">
+                            <span class="fmt-name">{fmt.format}</span>
+                            <span class="fmt-meta">{fmt.count} files ({fmt.percentage}) · {fmt.size}</span>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: {fmt.percentage}; background: {fmt.color}"></div>
+                        </div>
                     </div>
                 {/each}
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>Activity Timeline</h3>
-            <span class="card-action">Past 48 hours</span>
-        </div>
-        <div class="timeline">
-            {#each activityTimeline as item}
-                <div class="timeline-item">
-                    <span class="timeline-dot {item.status}"></span>
-                    <div>
-                        <p class="tl-title">{item.title}</p>
-                        <p class="tl-detail">{item.detail}</p>
-                        <p class="tl-meta">{item.meta}</p>
+        <!-- Compliance & Integrity Scorecard -->
+        <div class="card">
+            <div class="card-header">
+                <h3><ShieldCheck size={18} /> Compliance & Security Scorecard</h3>
+            </div>
+            <div class="scorecard">
+                <div class="score-box">
+                    <span class="score-num">100%</span>
+                    <span class="score-text">SHA-256 Hash Verification Rate</span>
+                </div>
+                <div class="check-list">
+                    <div class="check-item">
+                        <CheckCircle2 size={16} class="c-icon success" />
+                        <span>All stored file binaries match target checksums</span>
+                    </div>
+                    <div class="check-item">
+                        <CheckCircle2 size={16} class="c-icon success" />
+                        <span>100% Audit log traceability across all rollbacks</span>
+                    </div>
+                    <div class="check-item">
+                        <CheckCircle2 size={16} class="c-icon success" />
+                        <span>Role-Based Access Control (RBAC) enforced</span>
                     </div>
                 </div>
-            {/each}
+            </div>
         </div>
     </div>
 
+    <!-- Engineering Upload Heatmap -->
     <div class="card">
         <div class="card-header">
-            <h3>Audit Reports</h3>
-            <span class="card-action">Export ready</span>
+            <h3><Calendar size={18} /> Engineering Upload Heatmap (Peak Hours)</h3>
+            <span class="card-action">Shift Distribution</span>
+        </div>
+        <div class="table-container">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Morning Shift (08:00 - 12:00)</th>
+                        <th>Afternoon Shift (12:00 - 16:00)</th>
+                        <th>Evening Shift (16:00 - 20:00)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each weeklyHeatmap as row}
+                        <tr>
+                            <td class="day-col">{row.day}</td>
+                            <td><div class="heat-pill" style="opacity: {Math.max(0.3, row.h08_12 / 45)}">{row.h08_12} uploads</div></td>
+                            <td><div class="heat-pill peak" style="opacity: {Math.max(0.4, row.h12_16 / 45)}">{row.h12_16} uploads</div></td>
+                            <td><div class="heat-pill" style="opacity: {Math.max(0.3, row.h16_20 / 45)}">{row.h16_20} uploads</div></td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- High-Revision Programs Watchlist -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Program Revision Intensity Matrix</h3>
         </div>
         <div class="table-container">
             <table class="data-table">
                 <thead>
-                    <tr><th>Report</th><th>Owner</th><th>Date</th><th>Status</th></tr>
+                    <tr>
+                        <th>Program File</th>
+                        <th>Assigned Machine</th>
+                        <th>Revisions Depth</th>
+                        <th>Risk Assessment</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    {#each auditReports as report}
+                    {#each highChurnFiles as item}
                         <tr>
-                            <td class="report-name">{report.name}</td>
-                            <td class="meta-text">{report.owner}</td>
-                            <td class="meta-text">{report.date}</td>
+                            <td class="file-col">{item.file}</td>
+                            <td class="meta-col">{item.machine}</td>
+                            <td class="meta-col">{item.revisions} versions</td>
                             <td>
-                                <StatusBadge variant={report.status === 'Ready' ? 'success' : 'warning'}>
-                                    {report.status}
+                                <StatusBadge variant={item.riskLevel === 'Attention' ? 'warning' : 'success'}>
+                                    {item.riskLevel}
                                 </StatusBadge>
                             </td>
                         </tr>
@@ -108,7 +167,11 @@
 </div>
 
 <style>
-    .analytics-page { display: grid; gap: var(--space-lg); max-width: 960px; }
+    .analytics-page {
+        display: grid;
+        gap: var(--space-lg);
+        max-width: 1040px;
+    }
 
     .card {
         background: var(--color-surface-1);
@@ -116,38 +179,208 @@
         border-radius: var(--radius-lg);
         padding: var(--space-lg);
     }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); }
-    .card-header h3 { font-size: 18px; font-weight: 600; color: var(--color-ink); margin: 0; }
-    .card-action { font-size: 12px; font-weight: 600; color: var(--color-ink-subtle); }
 
-    .stat-grid { display: grid; gap: var(--space-md); grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: var(--space-lg); }
-    .stat-card { background: var(--color-surface-2); border: 1px solid var(--color-hairline); border-radius: var(--radius-lg); padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-xxs); }
-    .stat-label { font-size: 12px; font-weight: 500; color: var(--color-ink-subtle); text-transform: uppercase; letter-spacing: 0.06em; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--color-ink); letter-spacing: -0.6px; }
-    .stat-delta { font-size: 12px; color: var(--color-ink-tertiary); }
+    .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: var(--space-lg);
+    }
 
-    .chart-section h4 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-ink-subtle); margin: 0 0 var(--space-md); }
+    .card-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--color-ink);
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
 
-    .mini-chart { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-xs); align-items: end; height: 160px; }
-    .bar-col { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); height: 100%; justify-content: flex-end; }
-    .bar-fill { width: 100%; max-width: 24px; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: linear-gradient(180deg, var(--color-primary), var(--color-primary-focus)); min-height: 4px; transition: height var(--transition-slow); }
-    .bar-col:hover .bar-fill { background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary)); }
-    .bar-label { font-size: 11px; color: var(--color-ink-tertiary); font-weight: 500; }
+    .eyebrow {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-primary);
+        margin-bottom: 2px;
+    }
 
-    .timeline { display: flex; flex-direction: column; gap: var(--space-md); }
-    .timeline-item { display: grid; grid-template-columns: 12px 1fr; gap: var(--space-sm); }
-    .timeline-dot { width: 10px; height: 10px; border-radius: var(--radius-full); margin-top: 5px; background: var(--color-ink-tertiary); }
-    .timeline-dot.success { background: var(--color-success); box-shadow: 0 0 0 4px var(--color-success-subtle); }
-    .timeline-dot.warning { background: var(--color-warning); box-shadow: 0 0 0 4px var(--color-warning-subtle); }
-    .timeline-dot.info { background: var(--color-primary); box-shadow: 0 0 0 4px rgba(94, 106, 210, 0.15); }
-    .tl-title { font-size: 14px; font-weight: 600; color: var(--color-ink); margin: 0; }
-    .tl-detail { font-size: 13px; color: var(--color-ink-muted); margin: 2px 0 0; }
-    .tl-meta { font-size: 12px; color: var(--color-ink-tertiary); margin: 4px 0 0; }
+    .stat-grid {
+        display: grid;
+        gap: var(--space-md);
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
 
+    .stat-card {
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-ink-subtle);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--color-ink);
+        letter-spacing: -0.5px;
+    }
+
+    .stat-sub {
+        font-size: 12px;
+        color: var(--color-ink-tertiary);
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+    }
+
+    /* Formats */
+    .format-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .fmt-top {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .fmt-name {
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .fmt-meta {
+        color: var(--color-ink-subtle);
+    }
+
+    .bar-track {
+        height: 6px;
+        background: var(--color-surface-2);
+        border-radius: var(--radius-pill);
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        border-radius: var(--radius-pill);
+    }
+
+    /* Scorecard */
+    .scorecard {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .score-box {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: var(--space-md);
+        background: rgba(39, 166, 68, 0.08);
+        border: 1px solid rgba(39, 166, 68, 0.2);
+        border-radius: var(--radius-md);
+    }
+
+    .score-num {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--color-success);
+    }
+
+    .score-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .check-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    .check-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        font-size: 13px;
+        color: var(--color-ink-muted);
+    }
+
+    .check-item :global(.c-icon.success) {
+        color: var(--color-success);
+        flex-shrink: 0;
+    }
+
+    /* Heatmap Table */
+    .heatmap-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .heatmap-table th {
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-ink-tertiary);
+        padding: var(--space-xs) var(--space-sm);
+        border-bottom: 1px solid var(--color-hairline);
+    }
+
+    .heatmap-table td {
+        padding: var(--space-xs) var(--space-sm);
+        border-bottom: 1px solid var(--color-hairline);
+    }
+
+    .day-col {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--color-ink);
+    }
+
+    .heat-pill {
+        background: var(--color-primary);
+        color: #ffffff;
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .heat-pill.peak {
+        background: var(--color-primary-hover);
+    }
+
+    /* Data Table */
     .table-container { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--color-ink-tertiary); text-transform: uppercase; letter-spacing: 0.04em; padding: var(--space-sm); border-bottom: 1px solid var(--color-hairline); }
-    .data-table td { padding: var(--space-sm); border-bottom: 1px solid var(--color-hairline); font-size: 14px; }
-    .report-name { font-weight: 500; color: var(--color-ink); }
-    .meta-text { color: var(--color-ink-subtle); }
+    .data-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--color-ink-tertiary); padding: var(--space-sm); border-bottom: 1px solid var(--color-hairline); }
+    .data-table td { padding: var(--space-sm); border-bottom: 1px solid var(--color-hairline); font-size: 13px; }
+    .file-col { font-family: var(--font-mono); font-weight: 600; color: var(--color-ink); }
+    .meta-col { color: var(--color-ink-subtle); }
+
+    @media (max-width: 768px) {
+        .two-col { grid-template-columns: 1fr; }
+    }
 </style>

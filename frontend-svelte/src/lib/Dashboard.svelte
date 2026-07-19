@@ -5,7 +5,7 @@
     // Layout components
     import Sidebar from './components/Sidebar.svelte';
     import TopBar from './components/TopBar.svelte';
-    import CommandPalette from './components/CommandPalette.svelte';
+    import CommandPalette, { type CommandOrFileAction } from './components/CommandPalette.svelte';
     import Toast from './components/Toast.svelte';
     import { addToast } from './stores/toastStore';
     import Modal from './components/Modal.svelte';
@@ -26,15 +26,16 @@
     let activeTab = 'overview';
     let commandPaletteOpen = false;
     let showLogoutModal = false;
+    let targetPreviewFile: any = null;
 
     const tabTitles: Record<string, string> = {
         overview: 'Executive Overview',
         upload: 'Upload Program',
-        view: 'File Browser',
+        view: 'File Browser & Preview',
         rollback: 'Version Rollback',
         compare: 'Version Compare',
         machines: 'Machine Fleet',
-        analytics: 'Analytics & Reports',
+        analytics: 'Analytics & Intelligence',
         audit: 'Audit Trail',
         access: 'Access Control',
         settings: 'Settings',
@@ -48,9 +49,11 @@
         commandPaletteOpen = true;
     }
 
-    function handleCommandAction(event: any) {
-        const action = event;
-        if (action?.id) {
+    function handleCommandAction(action: CommandOrFileAction) {
+        if (action.type === 'file' && action.fileData) {
+            targetPreviewFile = action.fileData;
+            activeTab = 'view';
+        } else if (action.id) {
             activeTab = action.id;
         }
     }
@@ -68,9 +71,8 @@
         user.set(null);
     }
 
-    // Global keyboard shortcuts
+    // Global keyboard shortcuts (Ctrl+K / Cmd+K)
     function handleGlobalKeydown(e: KeyboardEvent) {
-        // Ctrl+K / Cmd+K → Command Palette
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
             commandPaletteOpen = !commandPaletteOpen;
@@ -104,13 +106,13 @@
                 {:else if activeTab === 'upload'}
                     <UploadPage showToast={addToast} />
                 {:else if activeTab === 'view'}
-                    <FilesPage showToast={addToast} />
+                    <FilesPage showToast={addToast} targetFile={targetPreviewFile} />
                 {:else if activeTab === 'rollback'}
                     <RollbackPage showToast={addToast} />
                 {:else if activeTab === 'compare'}
                     <ComparePage showToast={addToast} />
                 {:else if activeTab === 'machines'}
-                    <MachinesPage showToast={addToast} />
+                    <MachinesPage showToast={addToast} onNavigate={handleTabChange} />
                 {:else if activeTab === 'analytics'}
                     <AnalyticsPage />
                 {:else if activeTab === 'audit'}

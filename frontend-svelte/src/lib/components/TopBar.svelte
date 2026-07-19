@@ -1,36 +1,25 @@
 <script lang="ts">
-    import { Search, X, Command } from '@lucide/svelte';
+    import { theme, toggleTheme } from '../design/themeStore';
+    import { Search, Sun, Moon } from '@lucide/svelte';
 
     export let pageTitle: string = '';
-    export let searchQuery: string = '';
-    export let onSearchChange: (query: string) => void = () => {};
     export let onCommandPalette: () => void = () => {};
-
-    let searchWrapperElement: HTMLElement;
-    let showSearchResults = false;
-
-    function clearSearch() {
-        searchQuery = '';
-        onSearchChange('');
-        showSearchResults = false;
-    }
-
-    function handleClickOutside(event: MouseEvent) {
-        if (searchWrapperElement && !searchWrapperElement.contains(event.target as Node)) {
-            showSearchResults = false;
-        }
-    }
 </script>
-
-<svelte:window on:click={handleClickOutside} />
 
 <header class="topbar">
     <h2 class="page-title">{pageTitle}</h2>
 
-    <div class="search-wrapper" bind:this={searchWrapperElement}>
-        <div class="search-box" on:click={onCommandPalette} role="button" tabindex="0" on:keydown={(e) => e.key === 'Enter' && onCommandPalette()}>
+    <div class="search-wrapper">
+        <div
+            class="search-box"
+            on:click={onCommandPalette}
+            role="button"
+            tabindex="0"
+            on:keydown={(e) => e.key === 'Enter' && onCommandPalette()}
+            title="Search files or actions (Ctrl+K)"
+        >
             <Search size={16} />
-            <span class="search-placeholder">Search or jump to...</span>
+            <span class="search-placeholder">Search files or commands...</span>
             <div class="search-shortcut">
                 <kbd>⌘</kbd><kbd>K</kbd>
             </div>
@@ -38,6 +27,19 @@
     </div>
 
     <div class="topbar-actions">
+        <!-- Icon-only theme toggle button in top right corner -->
+        <button
+            class="icon-btn theme-toggle-btn"
+            on:click={toggleTheme}
+            title={$theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Theme"
+        >
+            {#if $theme === 'dark'}
+                <Sun size={18} />
+            {:else}
+                <Moon size={18} />
+            {/if}
+        </button>
         <slot name="actions" />
     </div>
 </header>
@@ -119,6 +121,26 @@
         display: flex;
         align-items: center;
         gap: var(--space-xs);
+    }
+
+    .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--color-hairline);
+        background: var(--color-surface-2);
+        color: var(--color-ink-subtle);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .icon-btn:hover {
+        background: var(--color-surface-3);
+        color: var(--color-ink);
+        border-color: var(--color-hairline-strong);
     }
 
     @media (max-width: 768px) {
