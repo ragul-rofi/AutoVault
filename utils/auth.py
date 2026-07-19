@@ -1,42 +1,40 @@
-import psycopg2
-from psycopg2 import sql
+from db.config import get_db_session
+from db.models import User, UserRole
+from passlib.hash import pbkdf2_sha256
 
-def authenticate_user(email,password):
+def hash_password(password):
+    return pbkdf2_sha256.hash(password)
+
+def verify_password(password, hashed_password):
+    return pbkdf2_sha256.verify(password, hashed_password)
+
+def authenticate_user(email, password):
     try:
-        conn = psycopg2.connect(
-            dbname="autovault",
-            user="postgres",
-            password="123",
-            host="localhost",
-            port="5432"
-    )
-        cur = conn.cursor()
-        query = sql.SQL("select id,name, role from users where email = %s and password = %s")
-        cur.execute(query,(email,password))
-        result = cur.fetchone()
-        cur.close()
-        conn.close()
+        db = next(get_db_session()) # Get a session
+        user = db.query(User).filter(User.email == email).first()
 
-        return result # None if not found
+        if user:
+            # Verify the provided password against the stored hash
+            if verify_password(password, user.password):
+                role_value = user.role.value if hasattr(user.role, "value") else user.role
+                return {'id': user.id, 'name': user.name, 'role': role_value}
+        
+        return None # None if not found or password does not match
     except Exception as e:
-        print("Database error: (authenticate user)",e)
+        print("Database error: (authenticate user)", e)
         return None
+    finally:
+        db.close()
 
 def get_user_role(user_id):
     try:
-        conn = psycopg2.connect(
-            dbname="autovault",
-            user="postgres",
-            password="123",
-            host="localhost",
-            port="5432"
-        )
-        cur = conn.cursor()
-        query = sql.SQL("select role from users where id = %s")
-        cur.execute(query,(user_id,))
-        result = cur.fetchone()
-        cur.close()
-        return result[0] if result else None
+        db = next(get_db_session()) # Get a session
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return None
+        return user.role.value if hasattr(user.role, "value") else user.role
     except Exception as e:
-        print("Database Error (get_user_role): ",e)
+        print("Database Error (get_user_role): ", e)
         return None
+    finally:
+        db.close()

@@ -1,7 +1,27 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+env/
 .env
+
+# Storage & DB
 uploads/
+*.db
+*.sqlite3
+
+# Node & Frontend
+node_modules/
+frontend-svelte/node_modules/
+frontend-svelte/dist/
+.svelte-kit/
+
+# IDE & Tooling
 .idea/
 .vscode/
-*.db
+.agent/
+.kiro/
+*.log

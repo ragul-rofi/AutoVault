@@ -1,0 +1,169 @@
+<mxfile host="Electron" modified="2026-06-06T12:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="autovault-flowchart" name="Page-1">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" adaptiveColors="auto" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <mxCell id="title" value="AUTOVAULT SYSTEM FLOWCHART" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=18;fontColor=#1a237e;" vertex="1" parent="1">
+          <mxGeometry x="327" y="30" width="1000" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="start" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="740" y="100" width="100" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="login" value="Authenticate via auth_bp&lt;br&gt;(Login.svelte / POST /login)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="710" y="220" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="is_auth" value="Is Credentials&lt;br&gt;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="720" y="350" width="140" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fail_auth" value="Display Error&lt;br&gt;(Unauthorized / Forbidden)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="500" y="360" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="dash" value="Access Dashboard&lt;br&gt;(Retrieve Machines)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="710" y="500" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="role_check" value="Check User&lt;br&gt;Role" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="720" y="630" width="140" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="viewer_flow" value="&lt;b&gt;Viewer Role&lt;/b&gt;&lt;br&gt;Read-only Access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="300" y="780" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="viewer_actions" value="View Machine file history&lt;br&gt;(GET /files/&amp;lt;id&amp;gt;)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="300" y="930" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="eng_flow" value="&lt;b&gt;Engineer Role&lt;/b&gt;&lt;br&gt;Read/Write Access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="710" y="780" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="eng_actions" value="1. View History&lt;br&gt;2. Upload new version&lt;br&gt;(POST /upload)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="710" y="930" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_flow" value="&lt;b&gt;Admin Role&lt;/b&gt;&lt;br&gt;Full Access" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="780" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_actions" value="1. View &amp;amp; Upload Files&lt;br&gt;2. Rollback to version&lt;br&gt;3. Download version&lt;br&gt;4. Diff two versions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="930" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="proc_upload" value="&lt;b&gt;File Upload Processing&lt;/b&gt;&lt;br&gt;Calculate SHA256 Hash&lt;br&gt;MinIO Upload&lt;br&gt;Insert DB &amp;amp; Audit Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="710" y="1080" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="proc_rollback" value="&lt;b&gt;Rollback Processing&lt;/b&gt;&lt;br&gt;Retrieve target version&lt;br&gt;Upload as new version&lt;br&gt;Insert DB &amp;amp; Audit Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="1080" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="end" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1230" width="100" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e1" edge="1" parent="1" source="start" target="login" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e2" edge="1" parent="1" source="login" target="is_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e3" value="No" edge="1" parent="1" source="is_auth" target="fail_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e4" edge="1" parent="1" source="fail_auth" target="login" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e5" value="Yes" edge="1" parent="1" source="is_auth" target="dash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e6" edge="1" parent="1" source="dash" target="role_check" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e7" value="Viewer" edge="1" parent="1" source="role_check" target="viewer_flow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e8" value="Engineer" edge="1" parent="1" source="role_check" target="eng_flow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e9" value="Admin" edge="1" parent="1" source="role_check" target="admin_flow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e10" edge="1" parent="1" source="viewer_flow" target="viewer_actions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e11" edge="1" parent="1" source="eng_flow" target="eng_actions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e12" edge="1" parent="1" source="admin_flow" target="admin_actions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e13" value="Upload" edge="1" parent="1" source="eng_actions" target="proc_upload" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e14" value="Upload" edge="1" parent="1" source="admin_actions" target="proc_upload" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e15" value="Rollback" edge="1" parent="1" source="admin_actions" target="proc_rollback" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e16" edge="1" parent="1" source="viewer_actions" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e17" edge="1" parent="1" source="proc_upload" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e18" edge="1" parent="1" source="proc_rollback" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_bg" value="&lt;b&gt;LEGEND&lt;/b&gt;" style="swimlane;startSize=24;fillColor=#f5f5f5;strokeColor=#cccccc;html=1;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="50" y="800" width="280" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_process" value="Process / Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="legend_bg">
+          <mxGeometry x="10" y="35" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_problem" value="Problems" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="legend_bg">
+          <mxGeometry x="140" y="35" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_impact" value="Impact" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="legend_bg">
+          <mxGeometry x="10" y="70" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_solution" value="Solutions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="legend_bg">
+          <mxGeometry x="140" y="70" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_ref" value="Reference / Docs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="legend_bg">
+          <mxGeometry x="10" y="105" width="120" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="scope_box" value="&lt;b&gt;Scope:&lt;/b&gt; AutoVault System Flowchart&lt;br&gt;&lt;b&gt;Author:&lt;/b&gt; Antigravity Agent&lt;br&gt;&lt;b&gt;Date:&lt;/b&gt; 2026-06-06" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;align=left;spacingLeft=10;fontSize=11;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="1040" width="280" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -30,3 +30,15 @@ create table file_versions(
     storage_path text not null
 
 );
+
+-- Table : audit_logs
+
+create table audit_logs (
+    id serial primary key,
+    user_id integer references users(id) on delete set null,
+    machine_id integer references machines(id) on delete cascade,
+    action text not null check (action in ('UPLOAD', 'ROLLBACK', 'DOWNLOAD', 'DIFF')),
+    file_name text not null,
+    target_version integer,
+    timestamp timestamp default CURRENT_TIMESTAMP
+);
