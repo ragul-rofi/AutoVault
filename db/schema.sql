@@ -27,8 +27,8 @@ create table file_versions(
     version_no integer not null,
     upload_time timestamp default CURRENT_TIMESTAMP,
     file_hash text not null,
-    storage_path text not null
-
+    storage_path text not null,
+    file_content text
 );
 
 -- Table : audit_logs

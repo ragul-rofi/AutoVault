@@ -8,6 +8,8 @@ from utils.file_utils import (
     get_file_path,
     get_file_diff,
     insert_audit_log,
+    get_file_content_by_version,
+    save_edited_file_content,
 )
 
 file_bp = Blueprint("files", __name__)
@@ -142,3 +144,54 @@ def diff_file():
             pass
 
     return jsonify({"status": "Success", "diff": diff}), 200
+
+
+@file_bp.route("/file-content", methods=["GET", "POST"])
+@require_role("admin", "engineer", "viewer")
+def file_content():
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = request.args
+
+    machine_id = payload.get("machine_id")
+    file_name = payload.get("file_name")
+    version_no = payload.get("version_no")
+
+    if not machine_id or not file_name or not version_no:
+        return jsonify({"status": "fail", "message": "machine_id, file_name, version_no required"}), 400
+
+    try:
+        machine_id = int(machine_id)
+        version_no = int(version_no)
+    except ValueError:
+        return jsonify({"status": "fail", "message": "Invalid numeric values"}), 400
+
+    content, error = get_file_content_by_version(machine_id, file_name, version_no)
+    if error:
+        return jsonify({"status": "fail", "message": error}), 404
+
+    return jsonify({"status": "success", "content": content, "file_name": file_name, "version_no": version_no}), 200
+
+
+@file_bp.route("/files/save-content", methods=["POST"])
+@require_role("admin", "engineer")
+def save_file_content():
+    payload = request.get_json(silent=True) or {}
+    machine_id = payload.get("machine_id")
+    file_name = payload.get("file_name")
+    content = payload.get("content")
+    uploaded_by = payload.get("uploaded_by") or _resolve_user_id()
+
+    if not machine_id or not file_name or content is None or not uploaded_by:
+        return jsonify({"status": "fail", "message": "machine_id, file_name, content, uploaded_by required"}), 400
+
+    try:
+        machine_id = int(machine_id)
+        uploaded_by = int(uploaded_by)
+    except ValueError:
+        return jsonify({"status": "fail", "message": "Invalid machine_id or uploaded_by"}), 400
+
+    response, status = save_edited_file_content(machine_id, file_name, content, uploaded_by)
+    return jsonify(response), status
+

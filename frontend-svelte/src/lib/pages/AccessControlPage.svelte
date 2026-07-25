@@ -7,7 +7,7 @@
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
 
-    import { API_BASE_URL } from '../config';
+    import { apiFetch } from '../api';
 
     interface UserItem {
         id: number;
@@ -35,12 +35,7 @@
 
     async function fetchUsers() {
         try {
-            const res = await fetch(`${API_BASE_URL}/users`, {
-                headers: {
-                    'X-User-Role': $user?.role || 'admin',
-                    'X-User-Id': String($user?.id || 1),
-                }
-            });
+            const res = await apiFetch('/users');
             const data = await res.json();
             if (res.ok && data.users) {
                 usersList = data.users;
@@ -57,12 +52,10 @@
         }
         loading = true;
         try {
-            const res = await fetch(`${API_BASE_URL}/users`, {
+            const res = await apiFetch('/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-Role': $user?.role || 'admin',
-                    'X-User-Id': String($user?.id || 1),
                 },
                 body: JSON.stringify({
                     name: newName,
@@ -98,12 +91,10 @@
 
     async function handleRoleChange(userId: number, targetRole: 'admin' | 'engineer' | 'viewer') {
         try {
-            const res = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+            const res = await apiFetch(`/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-Role': $user?.role || 'admin',
-                    'X-User-Id': String($user?.id || 1),
                 },
                 body: JSON.stringify({ role: targetRole }),
             });
@@ -122,12 +113,8 @@
             return;
         }
         try {
-            await fetch(`${API_BASE_URL}/users/${userId}`, {
+            await apiFetch(`/users/${userId}`, {
                 method: 'DELETE',
-                headers: {
-                    'X-User-Role': $user?.role || 'admin',
-                    'X-User-Id': String($user?.id || 1),
-                }
             });
         } catch {}
         usersList = usersList.filter(u => u.id !== userId);

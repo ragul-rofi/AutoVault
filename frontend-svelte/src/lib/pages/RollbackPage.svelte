@@ -4,7 +4,7 @@
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
 
-    import { API_BASE_URL } from '../config';
+    import { apiFetch } from '../api';
 
     let machineId = '';
     let fileName = '';
@@ -18,7 +18,7 @@
         }
         loading = true;
         try {
-            const response = await fetch(`${API_BASE_URL}/rollback`, {
+            const response = await apiFetch('/rollback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

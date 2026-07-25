@@ -4,7 +4,7 @@
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
 
-    import { API_BASE_URL } from '../config';
+    import { apiFetch } from '../api';
 
     let machineId = '';
     let fileName = '';
@@ -20,7 +20,7 @@
         }
         loading = true;
         try {
-            const response = await fetch(`${API_BASE_URL}/diff`, {
+            const response = await apiFetch('/diff', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -32,7 +32,7 @@
                 }),
             });
             const data = await response.json();
-            if (response.ok && data.status === 'Success') {
+            if (response.ok && (data.status === 'Success' || data.status === 'success')) {
                 diffLines = data.diff;
                 showToast('Comparison generated', 'success');
             } else {

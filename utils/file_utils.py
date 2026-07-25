@@ -113,6 +113,13 @@ def save_file_and_log(file, machine_id, uploaded_by):
             f.write(file_content_bytes)
         save_path = f"uploads/{machine_id}/{versioned_name}"
 
+    # Convert content bytes to utf-8 text if valid string
+    file_text_content = None
+    try:
+        file_text_content = file_content_bytes.decode('utf-8')
+    except Exception:
+        file_text_content = None
+
     # 6. Insert into DB and write audit log
     db = next(get_db_session())
     try:
@@ -122,7 +129,8 @@ def save_file_and_log(file, machine_id, uploaded_by):
             uploaded_by=uploaded_by,
             version_no=version_no,
             file_hash=file_hash,
-            storage_path=save_path
+            storage_path=save_path,
+            file_content=file_text_content
         )
         db.add(new_file_version)
         db.commit()
@@ -154,8 +162,6 @@ def get_files_by_machine(machine_id):
             FileVersion.machine_id == machine_id
         ).order_by(FileVersion.file_name, FileVersion.version_no).all()
 
-        logging.warning(f"Fetched rows: {file_versions}")
-
         if not file_versions:
             return None
 
@@ -167,6 +173,7 @@ def get_files_by_machine(machine_id):
                 "uploaded_by": fv.uploaded_by,
                 "file_hash": fv.file_hash,
                 "storage_path": fv.storage_path,
+                "has_content": bool(fv.file_content),
                 "created_at": fv.upload_time.isoformat()
             })
 
@@ -178,8 +185,13 @@ def get_files_by_machine(machine_id):
     finally:
         db.close()
 
-# Helper to read file content from MinIO or Local disk
-def read_file_content_bytes(storage_path):
+# Helper to read file content from DB, MinIO, or Local disk
+def read_file_content_bytes(storage_path, file_version=None):
+    # 1. Primary: DB string content if present
+    if file_version and file_version.file_content is not None:
+        return file_version.file_content.encode('utf-8')
+
+    # 2. Secondary: MinIO
     try:
         response = minio_client.get_object(MINIO_BUCKET_NAME, storage_path)
         content = response.read()
@@ -189,17 +201,102 @@ def read_file_content_bytes(storage_path):
     except Exception as e:
         logging.warning(f"MinIO read failed for {storage_path}, checking local disk fallback: {e}")
         
-        # Check relative or absolute local path
-        possible_paths = [
-            storage_path,
-            os.path.join(os.getcwd(), storage_path),
-            os.path.join(os.getcwd(), "uploads", storage_path),
-        ]
-        for p in possible_paths:
-            if os.path.exists(p) and os.path.isfile(p):
-                with open(p, "rb") as f:
-                    return f.read()
-        raise FileNotFoundError(f"File not found in MinIO or local storage: {storage_path}")
+    # 3. Tertiary: Local filesystem path
+    possible_paths = [
+        storage_path,
+        os.path.join(os.getcwd(), storage_path),
+        os.path.join(os.getcwd(), "uploads", storage_path),
+    ]
+    for p in possible_paths:
+        if os.path.exists(p) and os.path.isfile(p):
+            with open(p, "rb") as f:
+                return f.read()
+    
+    raise FileNotFoundError(f"File content missing in DB, MinIO, and local storage: {storage_path}")
+
+# Helper to get file string content directly for View modal
+def get_file_content_by_version(machine_id, file_name, version_no):
+    db = next(get_db_session())
+    try:
+        fv = db.query(FileVersion).filter(
+            FileVersion.machine_id == machine_id,
+            FileVersion.file_name == file_name,
+            FileVersion.version_no == version_no
+        ).first()
+
+        if not fv:
+            return None, "File version not found"
+
+        content_bytes = read_file_content_bytes(fv.storage_path, fv)
+        try:
+            return content_bytes.decode('utf-8'), None
+        except Exception:
+            return content_bytes.decode('latin-1', errors='replace'), None
+    except Exception as e:
+        return None, str(e)
+    finally:
+        db.close()
+
+# Helper to save edited file content as a new version
+def save_edited_file_content(machine_id, file_name, content_str, uploaded_by):
+    db = next(get_db_session())
+    try:
+        content_bytes = content_str.encode('utf-8')
+        file_hash = calculate_hash(content_bytes)
+
+        db_machine_id = get_machine_id(machine_id)
+        if db_machine_id is None:
+            return {"status": "fail", "message": "Invalid machine id"}, 400
+
+        version_no = get_next_version(file_name, machine_id)
+        versioned_name = f"{os.path.splitext(file_name)[0]}_v{version_no}{os.path.splitext(file_name)[1]}"
+        object_name = f"{machine_id}/{versioned_name}"
+        save_path = object_name
+
+        try:
+            minio_client.put_object(
+                MINIO_BUCKET_NAME,
+                object_name,
+                io.BytesIO(content_bytes),
+                length=len(content_bytes),
+                content_type="text/plain"
+            )
+        except Exception as e:
+            logging.warning("MinIO save failed for edit, using local disk & DB: %s", e)
+            local_dir = os.path.join(os.getcwd(), "uploads", str(machine_id))
+            os.makedirs(local_dir, exist_ok=True)
+            local_filepath = os.path.join(local_dir, versioned_name)
+            with open(local_filepath, "wb") as f:
+                f.write(content_bytes)
+            save_path = f"uploads/{machine_id}/{versioned_name}"
+
+        new_file_version = FileVersion(
+            file_name=file_name,
+            machine_id=machine_id,
+            uploaded_by=uploaded_by,
+            version_no=version_no,
+            file_hash=file_hash,
+            storage_path=save_path,
+            file_content=content_str
+        )
+        db.add(new_file_version)
+        db.commit()
+        db.refresh(new_file_version)
+
+        insert_audit_log(uploaded_by, machine_id, 'UPLOAD', file_name, version_no)
+
+        return {
+            "status": "success",
+            "message": f"Saved as version v{version_no}",
+            "version_no": version_no,
+            "storage_path": save_path
+        }, 200
+    except Exception as e:
+        db.rollback()
+        logging.error("Save Edit Error: %s", e)
+        return {"status": "fail", "message": "Internal server error"}, 500
+    finally:
+        db.close()
 
 # Rollback func
 def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_by):
@@ -219,10 +316,16 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
         old_storage_path = old_file_version.storage_path
 
         try:
-            content = read_file_content_bytes(old_storage_path)
+            content = read_file_content_bytes(old_storage_path, old_file_version)
         except Exception as e:
             logging.error(f"Error reading file for rollback: {e}")
             return {"status": "fail", "message": "Source file missing in storage"}, 500
+
+        content_str = None
+        try:
+            content_str = content.decode('utf-8')
+        except Exception:
+            content_str = old_file_version.file_content
 
         new_version = get_next_version(file_name, machine_id)
         versioned_name = f"{os.path.splitext(file_name)[0]}_v{new_version}{os.path.splitext(file_name)[1]}"
@@ -252,7 +355,8 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
             uploaded_by=uploaded_by,
             version_no=new_version,
             file_hash=file_hash,
-            storage_path=save_path
+            storage_path=save_path,
+            file_content=content_str
         )
         db.add(new_file_version)
         db.commit()
@@ -289,8 +393,8 @@ def get_file_path(machine_id, file_name, version_no):
 
         storage_path = file_version.storage_path
 
-        # Create temporary file from storage (MinIO or Local)
-        content = read_file_content_bytes(storage_path)
+        # Create temporary file from storage (DB, MinIO, or Local)
+        content = read_file_content_bytes(storage_path, file_version)
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_name)[1]) as temp_file:
             temp_file.write(content)
             return temp_file.name

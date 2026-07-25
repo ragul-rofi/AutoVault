@@ -8,7 +8,7 @@
     let loading = false;
     let showPassword = false;
 
-    import { API_BASE_URL } from './config';
+    import { apiFetch } from './api';
 
     function togglePasswordVisibility() {
         showPassword = !showPassword;
@@ -18,7 +18,7 @@
         loading = true;
         error = '';
         try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
+            const response = await apiFetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),

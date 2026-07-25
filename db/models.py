@@ -41,6 +41,7 @@ class FileVersion(Base):
     upload_time = Column(DateTime, server_default=func.now())
     file_hash = Column(String, nullable=False)
     storage_path = Column(String, nullable=False)
+    file_content = Column(String, nullable=True)
 
 class AuditLog(Base):
     __tablename__ = 'audit_logs'

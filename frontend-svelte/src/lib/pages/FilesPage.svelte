@@ -3,17 +3,28 @@
     import { user } from '../authStore';
     import StatusBadge from '../components/StatusBadge.svelte';
     import EmptyState from '../components/EmptyState.svelte';
-    import { Search, FileText, Download, Eye, X, Clock, Hash, Cpu } from '@lucide/svelte';
+    import Modal from '../components/Modal.svelte';
+    import { Search, FileText, Download, Eye, X, Clock, Hash, Cpu, Edit3, Code, Save, Check } from '@lucide/svelte';
+    import { apiFetch } from '../api';
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
     export let targetFile: any = null;
-
-    import { API_BASE_URL } from '../config';
 
     let viewMachineId = '101';
     let files: any[] = [];
     let selectedFile: any = null;
     let drawerOpen = false;
+
+    // View & Edit Modal States
+    let viewModalOpen = false;
+    let editModalOpen = false;
+    let viewingContent = '';
+    let editingContent = '';
+    let viewingFileName = '';
+    let viewingVersion = 1;
+    let viewingMachineId = 101;
+    let loadingContent = false;
+    let savingEdit = false;
 
     onMount(() => {
         if (targetFile) {
@@ -35,7 +46,7 @@
     async function fetchFiles() {
         if (!viewMachineId) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/files/${viewMachineId}`);
+            const response = await apiFetch(`/files/${viewMachineId}`);
             const data = await response.json();
             if (response.ok) {
                 files = data.files;
@@ -47,23 +58,11 @@
                 showToast(data.message || 'No files found', 'error');
             }
         } catch (e) {
-            // Fallback default files for machine 101 if offline
             if (viewMachineId === '101') {
                 files = [
                     { file_name: 'pump_housing.nc', machine_id: 101, version_no: 2, uploaded_by: 'John Doe', upload_time: '2026-07-19T09:42:00', file_hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
                     { file_name: 'pump_housing.nc', machine_id: 101, version_no: 1, uploaded_by: 'John Doe', upload_time: '2026-07-18T14:30:00', file_hash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' },
                     { file_name: 'bracket_arm.cnc', machine_id: 101, version_no: 4, uploaded_by: 'Jane Smith', upload_time: '2026-07-17T11:30:00', file_hash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' },
-                ];
-            } else if (viewMachineId === '102') {
-                files = [
-                    { file_name: 'turbine_blade.nc', machine_id: 102, version_no: 3, uploaded_by: 'Jane Smith', upload_time: '2026-07-19T08:15:00', file_hash: '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4' },
-                    { file_name: 'turbine_blade.nc', machine_id: 102, version_no: 2, uploaded_by: 'Jane Smith', upload_time: '2026-07-18T10:12:00', file_hash: '7a11223344556677889900aabbccddeeff11223344556677889900aabbccdde' },
-                    { file_name: 'turbine_blade.nc', machine_id: 102, version_no: 1, uploaded_by: 'Jane Smith', upload_time: '2026-07-16T15:20:00', file_hash: '11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff' },
-                ];
-            } else if (viewMachineId === '103') {
-                files = [
-                    { file_name: 'valve_seal.gcode', machine_id: 103, version_no: 2, uploaded_by: 'Bob Johnson', upload_time: '2026-07-18T16:10:00', file_hash: 'dca7be1180a6f4b1bf123782d5716d89916d924f2ee38510a526ab433500f756' },
-                    { file_name: 'valve_seal.gcode', machine_id: 103, version_no: 1, uploaded_by: 'Bob Johnson', upload_time: '2026-07-15T09:00:00', file_hash: '99887766554433221100aabbccddeeff99887766554433221100aabbccddeeff' },
                 ];
             } else {
                 files = [];
@@ -81,9 +80,83 @@
         selectedFile = null;
     }
 
+    async function openViewModal(file: any) {
+        viewingFileName = file.file_name;
+        viewingVersion = file.version_no;
+        viewingMachineId = Number(file.machine_id || viewMachineId);
+        loadingContent = true;
+        viewModalOpen = true;
+        try {
+            const res = await apiFetch(`/file-content?machine_id=${viewingMachineId}&file_name=${encodeURIComponent(viewingFileName)}&version_no=${viewingVersion}`);
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                viewingContent = data.content || '';
+            } else {
+                viewingContent = `; Unable to load content (${data.message || 'Error'})`;
+            }
+        } catch {
+            viewingContent = `; Offline mode - Sample G-Code for ${viewingFileName}\nG21 G90 G40 G80\nG28 G91 Z0\nM06 T01\nM03 S2000\nG00 X0 Y0\nG01 Z-5.0 F100\nM30`;
+        } finally {
+            loadingContent = false;
+        }
+    }
+
+    async function openEditModal(file: any) {
+        viewingFileName = file.file_name;
+        viewingVersion = file.version_no;
+        viewingMachineId = Number(file.machine_id || viewMachineId);
+        loadingContent = true;
+        editModalOpen = true;
+        try {
+            const res = await apiFetch(`/file-content?machine_id=${viewingMachineId}&file_name=${encodeURIComponent(viewingFileName)}&version_no=${viewingVersion}`);
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                editingContent = data.content || '';
+            } else {
+                editingContent = `% \n(NEW REVISION FOR ${viewingFileName})\nG21 G90 G40 G80\nM30\n%`;
+            }
+        } catch {
+            editingContent = `% \n(NEW REVISION FOR ${viewingFileName})\nG21 G90 G40 G80\nM30\n%`;
+        } finally {
+            loadingContent = false;
+        }
+    }
+
+    async function handleSaveEdit() {
+        if (!editingContent.trim()) {
+            showToast('File content cannot be empty', 'error');
+            return;
+        }
+        savingEdit = true;
+        try {
+            const res = await apiFetch('/files/save-content', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    machine_id: viewingMachineId,
+                    file_name: viewingFileName,
+                    content: editingContent,
+                    uploaded_by: $user?.id || 1,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok && data.status === 'success') {
+                showToast(`Saved as Version v${data.version_no}`, 'success');
+                editModalOpen = false;
+                await fetchFiles();
+            } else {
+                showToast(data.message || 'Failed to save edit', 'error');
+            }
+        } catch {
+            showToast('Network error while saving file', 'error');
+        } finally {
+            savingEdit = false;
+        }
+    }
+
     async function downloadFile(file: any) {
         try {
-            const response = await fetch(`${API_BASE_URL}/download`, {
+            const response = await apiFetch('/download', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -167,14 +240,17 @@
                                 <td class="meta-text">{file.uploaded_by}</td>
                                 <td>
                                     <div class="action-cell">
-                                        <button class="icon-btn" on:click|stopPropagation={() => openDrawer(file)} title="Preview File">
-                                            <Eye size={14} />
+                                        <button class="icon-btn" on:click|stopPropagation={() => openViewModal(file)} title="View Code Content">
+                                            <Code size={14} />
                                         </button>
-                                        {#if $user?.role === 'admin'}
-                                            <button class="icon-btn" on:click|stopPropagation={() => downloadFile(file)} title="Download">
-                                                <Download size={14} />
+                                        {#if $user?.role === 'admin' || $user?.role === 'engineer'}
+                                            <button class="icon-btn" on:click|stopPropagation={() => openEditModal(file)} title="Edit Program">
+                                                <Edit3 size={14} />
                                             </button>
                                         {/if}
+                                        <button class="icon-btn" on:click|stopPropagation={() => downloadFile(file)} title="Download">
+                                            <Download size={14} />
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -211,7 +287,7 @@
                     <div class="detail-row">
                         <Cpu size={14} />
                         <span class="detail-label">Machine ID</span>
-                        <span class="detail-value">Machine #{selectedFile.machine_id}</span>
+                        <span class="detail-value">Machine #{selectedFile.machine_id || viewMachineId}</span>
                     </div>
                     <div class="detail-row">
                         <Clock size={14} />
@@ -232,9 +308,17 @@
                     {/if}
                 </div>
 
-                <div class="drawer-actions">
-                    <button class="primary-btn full-width" on:click={() => downloadFile(selectedFile)}>
-                        <Download size={14} /> Download Program File
+                <div class="drawer-actions-grid">
+                    <button class="primary-btn" on:click={() => openViewModal(selectedFile)}>
+                        <Code size={14} /> View Content
+                    </button>
+                    {#if $user?.role === 'admin' || $user?.role === 'engineer'}
+                        <button class="secondary-btn" on:click={() => openEditModal(selectedFile)}>
+                            <Edit3 size={14} /> Edit Program
+                        </button>
+                    {/if}
+                    <button class="secondary-btn" on:click={() => downloadFile(selectedFile)}>
+                        <Download size={14} /> Download
                     </button>
                 </div>
 
@@ -249,9 +333,14 @@
                                         <span class="version-label">Version {ver.version_no}</span>
                                         <span class="version-meta">{new Date(ver.created_at || ver.upload_time).toLocaleDateString()} · By {ver.uploaded_by}</span>
                                     </div>
-                                    <button class="icon-btn" on:click={() => downloadFile(ver)} title="Download v{ver.version_no}">
-                                        <Download size={14} />
-                                    </button>
+                                    <div class="item-actions">
+                                        <button class="icon-btn" on:click={() => openViewModal(ver)} title="View Code">
+                                            <Code size={13} />
+                                        </button>
+                                        <button class="icon-btn" on:click={() => downloadFile(ver)} title="Download v{ver.version_no}">
+                                            <Download size={13} />
+                                        </button>
+                                    </div>
                                 </div>
                             {/each}
                         </div>
@@ -261,6 +350,32 @@
         </div>
     </div>
 {/if}
+
+<!-- View Code Content Modal -->
+<Modal open={viewModalOpen} title="Viewing Code: {viewingFileName} (v{viewingVersion})" on:close={() => viewModalOpen = false} size="lg">
+    {#if loadingContent}
+        <div class="modal-loading">Loading program file content...</div>
+    {:else}
+        <div class="code-viewer-container">
+            <pre class="code-viewer">{viewingContent}</pre>
+        </div>
+    {/if}
+</Modal>
+
+<!-- Edit Code Content Modal -->
+<Modal open={editModalOpen} title="Edit Program: {viewingFileName}" on:close={() => editModalOpen = false} size="lg">
+    <div class="code-editor-modal">
+        <p class="editor-subtitle">Modifying content will save as a new version <strong>v{viewingVersion + 1}</strong>.</p>
+        <textarea class="code-editor-textarea" bind:value={editingContent} rows="14" placeholder="Enter G-code / NC program content..."></textarea>
+        <div class="modal-actions-bar">
+            <button class="secondary-btn" on:click={() => editModalOpen = false}>Cancel</button>
+            <button class="primary-btn" on:click={handleSaveEdit} disabled={savingEdit}>
+                <Save size={14} />
+                {savingEdit ? 'Saving Version...' : 'Save as New Version'}
+            </button>
+        </div>
+    </div>
+</Modal>
 
 <style>
     .files-page {
@@ -578,6 +693,112 @@
     .version-meta {
         font-size: 11px;
         color: var(--color-ink-tertiary);
+    }
+
+    .drawer-actions-grid {
+        display: flex;
+        gap: var(--space-xs);
+        flex-wrap: wrap;
+    }
+
+    .drawer-actions-grid button {
+        flex: 1;
+        min-width: 110px;
+        font-size: 12px;
+        padding: 8px 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 4px;
+    }
+
+    .secondary-btn {
+        padding: 8px 16px;
+        background: var(--color-surface-2);
+        color: var(--color-ink);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        transition: all var(--transition-fast);
+    }
+
+    .secondary-btn:hover {
+        background: var(--color-surface-3);
+        border-color: var(--color-hairline-strong);
+    }
+
+    /* Modal Content Styles */
+    .modal-loading {
+        padding: var(--space-xl);
+        text-align: center;
+        color: var(--color-ink-subtle);
+        font-size: 14px;
+    }
+
+    .code-viewer-container {
+        max-height: 450px;
+        overflow-y: auto;
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
+    }
+
+    .code-viewer {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--color-ink);
+        white-space: pre-wrap;
+        word-break: break-all;
+        line-height: 1.6;
+    }
+
+    .code-editor-modal {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .editor-subtitle {
+        margin: 0;
+        font-size: 13px;
+        color: var(--color-ink-subtle);
+    }
+
+    .code-editor-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.5;
+        padding: var(--space-md);
+        background: var(--color-surface-2);
+        color: var(--color-ink);
+        border: 1px solid var(--color-hairline);
+        border-radius: var(--radius-md);
+        resize: vertical;
+        outline: none;
+    }
+
+    .code-editor-textarea:focus {
+        border-color: var(--color-primary);
+    }
+
+    .modal-actions-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-sm);
     }
 
     @keyframes fadeIn {

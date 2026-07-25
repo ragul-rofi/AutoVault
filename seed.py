@@ -152,16 +152,16 @@ M30
     path_ph_v1 = create_and_store_file(101, "pump_housing_v1.nc", ph_v1_content)
     hash_ph_v1 = calculate_hash(ph_v1_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("pump_housing.nc", 101, admin_id, 1, hash_ph_v1, path_ph_v1))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("pump_housing.nc", 101, admin_id, 1, hash_ph_v1, path_ph_v1, ph_v1_content))
 
     path_ph_v2 = create_and_store_file(101, "pump_housing_v2.nc", ph_v2_content)
     hash_ph_v2 = calculate_hash(ph_v2_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("pump_housing.nc", 101, admin_id, 2, hash_ph_v2, path_ph_v2))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("pump_housing.nc", 101, admin_id, 2, hash_ph_v2, path_ph_v2, ph_v2_content))
 
     # 2. turbine_blade.nc versions for Machine 102
     tb_v1_content = """%
@@ -192,23 +192,23 @@ M30
     path_tb_v1 = create_and_store_file(102, "turbine_blade_v1.nc", tb_v1_content)
     hash_tb_v1 = calculate_hash(tb_v1_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("turbine_blade.nc", 102, engineer_id, 1, hash_tb_v1, path_tb_v1))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("turbine_blade.nc", 102, engineer_id, 1, hash_tb_v1, path_tb_v1, tb_v1_content))
 
     path_tb_v2 = create_and_store_file(102, "turbine_blade_v2.nc", tb_v2_content)
     hash_tb_v2 = calculate_hash(tb_v2_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("turbine_blade.nc", 102, engineer_id, 2, hash_tb_v2, path_tb_v2))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("turbine_blade.nc", 102, engineer_id, 2, hash_tb_v2, path_tb_v2, tb_v2_content))
 
     path_tb_v3 = create_and_store_file(102, "turbine_blade_v3.nc", tb_v3_content)
     hash_tb_v3 = calculate_hash(tb_v3_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("turbine_blade.nc", 102, engineer_id, 3, hash_tb_v3, path_tb_v3))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("turbine_blade.nc", 102, engineer_id, 3, hash_tb_v3, path_tb_v3, tb_v3_content))
 
     # 3. valve_seal.gcode versions for Machine 103
     vs_v1_content = """; VALVE SEAL V1
@@ -231,16 +231,16 @@ M30"""
     path_vs_v1 = create_and_store_file(103, "valve_seal_v1.gcode", vs_v1_content)
     hash_vs_v1 = calculate_hash(vs_v1_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("valve_seal.gcode", 103, admin_id, 1, hash_vs_v1, path_vs_v1))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("valve_seal.gcode", 103, admin_id, 1, hash_vs_v1, path_vs_v1, vs_v1_content))
 
     path_vs_v2 = create_and_store_file(103, "valve_seal_v2.gcode", vs_v2_content)
     hash_vs_v2 = calculate_hash(vs_v2_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("valve_seal.gcode", 103, admin_id, 2, hash_vs_v2, path_vs_v2))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("valve_seal.gcode", 103, admin_id, 2, hash_vs_v2, path_vs_v2, vs_v2_content))
 
     # 4. bracket_arm.cnc for Machine 104
     ba_v1_content = """%
@@ -253,9 +253,9 @@ M30
     path_ba_v1 = create_and_store_file(104, "bracket_arm_v1.cnc", ba_v1_content)
     hash_ba_v1 = calculate_hash(ba_v1_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("bracket_arm.cnc", 104, ops_id, 1, hash_ba_v1, path_ba_v1))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("bracket_arm.cnc", 104, ops_id, 1, hash_ba_v1, path_ba_v1, ba_v1_content))
 
     # 5. housing_bracket.tap for Machine 105
     hb_v1_content = """(LASER CUTTER HOUSING BRACKET V1)
@@ -270,9 +270,9 @@ M30"""
     path_hb_v1 = create_and_store_file(105, "housing_bracket_v1.tap", hb_v1_content)
     hash_hb_v1 = calculate_hash(hb_v1_content.encode('utf-8'))
     cur.execute("""
-        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, ("housing_bracket.tap", 105, engineer_id, 1, hash_hb_v1, path_hb_v1))
+        INSERT INTO file_versions (file_name, machine_id, uploaded_by, version_no, file_hash, storage_path, file_content)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """, ("housing_bracket.tap", 105, engineer_id, 1, hash_hb_v1, path_hb_v1, hb_v1_content))
 
     conn.commit()
     print("Files and File Versions seeded!")

@@ -4,7 +4,7 @@
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
 
-    import { API_BASE_URL } from '../config';
+    import { apiFetch } from '../api';
 
     let uploadMachineId = '';
     let dragActive = false;
@@ -85,7 +85,7 @@
                 if (progress >= 90) clearInterval(interval);
             }, 200);
 
-            const response = await fetch(`${API_BASE_URL}/upload`, {
+            const response = await apiFetch('/upload', {
                 method: 'POST',
                 body: formData,
             });

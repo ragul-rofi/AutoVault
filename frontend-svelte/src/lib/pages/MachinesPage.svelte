@@ -8,7 +8,7 @@
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
     export let onNavigate: (tab: string) => void = () => {};
 
-    import { API_BASE_URL } from '../config';
+    import { apiFetch } from '../api';
 
     interface MachineFile {
         file_name: string;
@@ -51,7 +51,7 @@
     async function syncMachinesAndFiles() {
         try {
             // Fetch live machines if backend is active
-            const res = await fetch(`${API_BASE_URL}/machines`);
+            const res = await apiFetch('/machines');
             const data = await res.json();
             if (res.ok && data.machines && data.machines.length > 0) {
                 // Merge backend machine IDs
@@ -85,7 +85,7 @@
     async function fetchFilesForMachine(machineId: string) {
         machines = machines.map(m => m.id === machineId ? { ...m, loadingFiles: true } : m);
         try {
-            const res = await fetch(`${API_BASE_URL}/files/${machineId}`);
+            const res = await apiFetch(`/files/${machineId}`);
             const data = await res.json();
             if (res.ok && data.files) {
                 machines = machines.map(m => m.id === machineId ? { ...m, files: data.files, loadingFiles: false } : m);
