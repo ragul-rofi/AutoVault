@@ -352,7 +352,7 @@
 {/if}
 
 <!-- View Code Content Modal -->
-<Modal open={viewModalOpen} title="Viewing Code: {viewingFileName} (v{viewingVersion})" on:close={() => viewModalOpen = false} size="lg">
+<Modal open={viewModalOpen} title="Viewing Code: {viewingFileName} (v{viewingVersion})" onClose={() => viewModalOpen = false} on:close={() => viewModalOpen = false} size="lg">
     {#if loadingContent}
         <div class="modal-loading">Loading program file content...</div>
     {:else}
@@ -363,7 +363,7 @@
 </Modal>
 
 <!-- Edit Code Content Modal -->
-<Modal open={editModalOpen} title="Edit Program: {viewingFileName}" on:close={() => editModalOpen = false} size="lg">
+<Modal open={editModalOpen} title="Edit Program: {viewingFileName}" onClose={() => editModalOpen = false} on:close={() => editModalOpen = false} size="lg">
     <div class="code-editor-modal">
         <p class="editor-subtitle">Modifying content will save as a new version <strong>v{viewingVersion + 1}</strong>.</p>
         <textarea class="code-editor-textarea" bind:value={editingContent} rows="14" placeholder="Enter G-code / NC program content..."></textarea>

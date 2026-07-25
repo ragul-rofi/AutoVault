@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { createEventDispatcher } from 'svelte';
     import { X } from '@lucide/svelte';
 
     export let open: boolean = false;
@@ -6,14 +7,20 @@
     export let title: string = '';
     export let onClose: () => void = () => {};
 
+    const dispatch = createEventDispatcher();
     const sizeMap = { sm: '480px', md: '640px', lg: '800px' };
 
+    function handleClose() {
+        if (onClose) onClose();
+        dispatch('close');
+    }
+
     function handleOverlayClick() {
-        onClose();
+        handleClose();
     }
 
     function handleKeydown(e: KeyboardEvent) {
-        if (e.key === 'Escape') onClose();
+        if (e.key === 'Escape') handleClose();
     }
 </script>
 
@@ -33,7 +40,7 @@
                     {:else}
                         <h3>{title}</h3>
                     {/if}
-                    <button class="close-btn" on:click={onClose} aria-label="Close">
+                    <button class="close-btn" on:click={handleClose} type="button" aria-label="Close">
                         <X size={18} />
                     </button>
                 </div>
