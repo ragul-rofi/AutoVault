@@ -90,23 +90,28 @@ def save_file_and_log(file, machine_id, uploaded_by):
     version_no = get_next_version(filename, machine_id) # This function now uses ORM
     versioned_name = f"{os.path.splitext(filename)[0]}_v{version_no}{os.path.splitext(filename)[1]}"
     
-    # 5. Save file to MinIO
+    # 5. Save file (Try MinIO first, fallback to local disk)
     object_name = f"{machine_id}/{versioned_name}"
+    save_path = object_name
+    saved_to_minio = False
+
     try:
         minio_client.put_object(
             MINIO_BUCKET_NAME,
             object_name,
-            file.stream, # Use the file stream directly
-            length=file.content_length, # Use content_length from FileStorage
-            content_type=file.content_type # Use content_type from FileStorage
+            file.stream,
+            length=len(file_content_bytes),
+            content_type=file.content_type or "application/octet-stream"
         )
-        save_path = object_name # Store object name as storage_path
-    except S3Error as e:
-        logging.error("MinIO Save Error: %s", e)
-        return {"status": "fail", "message": "Failed to save file to object storage"}, 500
+        saved_to_minio = True
     except Exception as e:
-        logging.error("File Save Error: %s", e)
-        return {"status": "fail", "message": "Failed to save file"}, 500
+        logging.warning("MinIO unavailable, saving file locally: %s", e)
+        local_dir = os.path.join(os.getcwd(), "uploads", str(machine_id))
+        os.makedirs(local_dir, exist_ok=True)
+        local_filepath = os.path.join(local_dir, versioned_name)
+        with open(local_filepath, "wb") as f:
+            f.write(file_content_bytes)
+        save_path = f"uploads/{machine_id}/{versioned_name}"
 
     # 6. Insert into DB and write audit log
     db = next(get_db_session())
@@ -173,12 +178,34 @@ def get_files_by_machine(machine_id):
     finally:
         db.close()
 
+# Helper to read file content from MinIO or Local disk
+def read_file_content_bytes(storage_path):
+    try:
+        response = minio_client.get_object(MINIO_BUCKET_NAME, storage_path)
+        content = response.read()
+        response.close()
+        response.release_conn()
+        return content
+    except Exception as e:
+        logging.warning(f"MinIO read failed for {storage_path}, checking local disk fallback: {e}")
+        
+        # Check relative or absolute local path
+        possible_paths = [
+            storage_path,
+            os.path.join(os.getcwd(), storage_path),
+            os.path.join(os.getcwd(), "uploads", storage_path),
+        ]
+        for p in possible_paths:
+            if os.path.exists(p) and os.path.isfile(p):
+                with open(p, "rb") as f:
+                    return f.read()
+        raise FileNotFoundError(f"File not found in MinIO or local storage: {storage_path}")
+
 # Rollback func
 def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_by):
     db = next(get_db_session())
     try:
         logging.warning(f"Rolling back {file_name} on machine {machine_id} to v{rollback_to_version}")
-        # Getting older version details using ORM
         old_file_version = db.query(FileVersion).filter(
             FileVersion.machine_id == machine_id,
             FileVersion.file_name == file_name,
@@ -189,46 +216,36 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
             return {"status": "fail", "message": "Version not found"}, 404
         
         file_hash = old_file_version.file_hash
-        old_object_name = old_file_version.storage_path # This is now the MinIO object name
+        old_storage_path = old_file_version.storage_path
 
-        # Fetch content from MinIO
         try:
-            response = minio_client.get_object(MINIO_BUCKET_NAME, old_object_name)
-            content = response.read()
-            response.close()
-            response.release_conn()
-        except S3Error as e:
-            logging.error(f"MinIO Error getting object {old_object_name} for rollback: {e}")
-            return {"status": "fail", "message": "Source file missing in object storage"}, 500
+            content = read_file_content_bytes(old_storage_path)
         except Exception as e:
-            logging.error(f"Error reading object {old_object_name} for rollback: {e}")
-            return {"status": "fail", "message": "Failed to read source file"}, 500
+            logging.error(f"Error reading file for rollback: {e}")
+            return {"status": "fail", "message": "Source file missing in storage"}, 500
 
-        # Getting next version number
-        new_version = get_next_version(file_name, machine_id) # This function now uses ORM
+        new_version = get_next_version(file_name, machine_id)
         versioned_name = f"{os.path.splitext(file_name)[0]}_v{new_version}{os.path.splitext(file_name)[1]}"
-        
-        # New object name in MinIO
         new_object_name = f"{machine_id}/{versioned_name}"
+        save_path = new_object_name
 
-        # Upload the copied content as a new object to MinIO
         try:
             minio_client.put_object(
                 MINIO_BUCKET_NAME,
                 new_object_name,
-                io.BytesIO(content), # Wrap content in BytesIO for upload
+                io.BytesIO(content),
                 length=len(content),
                 content_type="application/octet-stream"
             )
-            save_path = new_object_name # Store new object name as storage_path
-        except S3Error as e:
-            logging.error("MinIO Save Error during rollback: %s", e)
-            return {"status": "fail", "message": "Failed to save rolled back file to object storage"}, 500
         except Exception as e:
-            logging.error("File Save Error during rollback: %s", e)
-            return {"status": "fail", "message": "Failed to save rolled back file"}, 500
+            logging.warning("MinIO put failed during rollback, saving locally: %s", e)
+            local_dir = os.path.join(os.getcwd(), "uploads", str(machine_id))
+            os.makedirs(local_dir, exist_ok=True)
+            local_filepath = os.path.join(local_dir, versioned_name)
+            with open(local_filepath, "wb") as f:
+                f.write(content)
+            save_path = f"uploads/{machine_id}/{versioned_name}"
 
-        # Inserting new DB record using ORM
         new_file_version = FileVersion(
             file_name=file_name,
             machine_id=machine_id,
@@ -241,7 +258,6 @@ def rollback_file_version(machine_id, file_name, rollback_to_version, uploaded_b
         db.commit()
         db.refresh(new_file_version)
 
-        # Write immutable audit trail entry
         insert_audit_log(uploaded_by, machine_id, 'ROLLBACK', file_name, rollback_to_version)
 
         return {
@@ -271,17 +287,15 @@ def get_file_path(machine_id, file_name, version_no):
         if not file_version:
             return None
 
-        object_name = file_version.storage_path
-        
-        # Create a temporary file to store the downloaded content
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            minio_client.fget_object(MINIO_BUCKET_NAME, object_name, temp_file.name)
-            return temp_file.name # Return the path to the temporary file
-    except S3Error as e:
-        logging.error(f"MinIO Error getting object {object_name}: {e}")
-        return None
+        storage_path = file_version.storage_path
+
+        # Create temporary file from storage (MinIO or Local)
+        content = read_file_content_bytes(storage_path)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_name)[1]) as temp_file:
+            temp_file.write(content)
+            return temp_file.name
     except Exception as e:
-        logging.error("Database Error (get_file_path): %s", e)
+        logging.error("Error retrieving file path: %s", e)
         return None
     finally:
         db.close()

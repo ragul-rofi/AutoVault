@@ -4,7 +4,7 @@
 
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
 
-    const API_BASE_URL = 'http://localhost:5000';
+    import { API_BASE_URL } from '../config';
 
     let uploadMachineId = '';
     let dragActive = false;

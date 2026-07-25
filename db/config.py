@@ -48,6 +48,8 @@ def create_minio_bucket():
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 else:
     engine = create_engine(
@@ -60,7 +62,10 @@ def get_db_connection():
     Legacy psycopg2 connection helper used by seed.py.
     """
     if DATABASE_URL:
-        return psycopg2.connect(DATABASE_URL)
+        db_url = DATABASE_URL
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        return psycopg2.connect(db_url)
 
     return psycopg2.connect(
         dbname=DB_NAME,

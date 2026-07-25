@@ -8,7 +8,7 @@
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
     export let onNavigate: (tab: string) => void = () => {};
 
-    const API_BASE_URL = 'http://localhost:5000';
+    import { API_BASE_URL } from '../config';
 
     interface MachineFile {
         file_name: string;

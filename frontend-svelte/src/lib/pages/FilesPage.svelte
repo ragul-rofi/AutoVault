@@ -8,7 +8,7 @@
     export let showToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void = () => {};
     export let targetFile: any = null;
 
-    const API_BASE_URL = 'http://localhost:5000';
+    import { API_BASE_URL } from '../config';
 
     let viewMachineId = '101';
     let files: any[] = [];
